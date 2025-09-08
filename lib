@@ -23,7 +23,7 @@ function RedHUB:CreateWindow(config)
     -- Сначала полностью выполняем интро
     self:PlayIntroAnimation()
     -- Ждем полного завершения интро
-    task.wait(4)
+    task.wait(3.5)
     -- Только потом создаем GUI
     self:CreateMainWindow()
     
@@ -48,73 +48,46 @@ function RedHUB:PlayIntroAnimation()
     centerLabel.TextColor3 = self.Config.Theme.Primary
     centerLabel.Font = Enum.Font.GothamBlack
     centerLabel.TextSize = 2
-    centerLabel.TextTransparency = 0.8
+    centerLabel.TextTransparency = 1 -- Начинает полностью прозрачным
     centerLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
     centerLabel.TextStrokeTransparency = 0.9
     centerLabel.Rotation = -360
     centerLabel.ZIndex = 10
     centerLabel.Parent = introGui
 
-    -- Анимация приближения и вращения
-    local approachTween = tweenService:Create(
+    -- Появление: вращение + увеличение
+    local appearTween = tweenService:Create(
         centerLabel,
         TweenInfo.new(1.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
         {
             Size = UDim2.new(0, 400, 0, 150),
             Position = UDim2.new(0.5, -200, 0.5, -75),
             TextSize = 80,
-            TextTransparency = 0,
+            TextTransparency = 0, -- Появляется
             TextStrokeTransparency = 0.3,
             Rotation = 0
         }
     )
 
-    approachTween:Play()
+    appearTween:Play()
     task.wait(1.5)
     
-    -- Мерцание как лампочка (4 раза)
-    for i = 1, 4 do
-        -- Мерцание выкл
-        local blinkOff = tweenService:Create(
-            centerLabel,
-            TweenInfo.new(0.1, Enum.EasingStyle.Linear),
-            {
-                TextTransparency = 0.8,
-                TextColor3 = Color3.fromRGB(150, 0, 0)
-            }
-        )
-        
-        -- Мерцание вкл
-        local blinkOn = tweenService:Create(
-            centerLabel,
-            TweenInfo.new(0.1, Enum.EasingStyle.Linear),
-            {
-                TextTransparency = 0,
-                TextColor3 = self.Config.Theme.Primary
-            }
-        )
-        
-        blinkOff:Play()
-        task.wait(0.15)
-        blinkOn:Play()
-        task.wait(0.15)
-    end
+    -- Держим текст на экране
+    task.wait(1.0)
     
-    task.wait(0.5)
-    
-    -- Финальное исчезновение
-    local fadeOut = tweenService:Create(
+    -- Исчезновение: плавное испарение
+    local disappearTween = tweenService:Create(
         centerLabel,
-        TweenInfo.new(0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+        TweenInfo.new(1.0, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
         {
             TextTransparency = 1,
             TextStrokeTransparency = 1,
-            TextSize = 100
+            TextSize = 90
         }
     )
     
-    fadeOut:Play()
-    task.wait(0.8)
+    disappearTween:Play()
+    task.wait(1.0)
     
     -- Уничтожаем интро
     introGui:Destroy()
@@ -145,7 +118,7 @@ function RedHUB:CreateMainWindow()
     titleBar.BackgroundColor3 = self.Config.Theme.Secondary
     titleBar.BorderSizePixel = 0
     titleBar.ZIndex = 2
-    titleBar.Active = true -- Важно для перетаскивания
+    titleBar.Active = true
     titleBar.Parent = self.MainFrame
     
     local titleText = Instance.new("TextLabel")
