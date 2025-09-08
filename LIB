@@ -7,7 +7,7 @@ local tweenService = game:GetService("TweenService")
 local runService = game:GetService("RunService")
 
 -- Конфигурация анимации
-local INTRO_DURATION = 3.0
+local INTRO_DURATION = 3.5
 local EASE_STYLE = Enum.EasingStyle.Quint
 local EASE_DIRECTION = Enum.EasingDirection.Out
 
@@ -28,7 +28,7 @@ function RedHUB:CreateWindow(config)
     }
     
     self:CreateSimpleIntro()
-    task.wait(INTRO_DURATION + 0.8)
+    task.wait(INTRO_DURATION + 0.5)
     self:CreateMainWindow()
     
     return self
@@ -41,99 +41,150 @@ function RedHUB:CreateSimpleIntro()
     self.IntroGui.Parent = game:GetService("CoreGui")
     self.IntroGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     
-    -- Центральная надпись RPHUB (изначально маленькая и повернутая)
+    -- Центральная надпись RPHUB (очень далеко и маленькая)
     self.CenterLabel = Instance.new("TextLabel")
     self.CenterLabel.Name = "CenterLabel"
-    self.CenterLabel.Size = UDim2.new(0, 50, 0, 50)
-    self.CenterLabel.Position = UDim2.new(0.5, -25, 0.5, -25)
+    self.CenterLabel.Size = UDim2.new(0, 5, 0, 5) -- Очень маленький
+    self.CenterLabel.Position = UDim2.new(0.5, -2.5, 0.5, -2.5)
     self.CenterLabel.AnchorPoint = Vector2.new(0.5, 0.5)
     self.CenterLabel.BackgroundTransparency = 1
     self.CenterLabel.Text = "RPHUB"
     self.CenterLabel.TextColor3 = self.Config.Theme.Primary
     self.CenterLabel.Font = Enum.Font.GothamBlack
-    self.CenterLabel.TextSize = 10
-    self.CenterLabel.TextTransparency = 0
+    self.CenterLabel.TextSize = 2 -- Очень маленький текст
+    self.CenterLabel.TextTransparency = 0.8 -- Почти невидимый
     self.CenterLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-    self.CenterLabel.TextStrokeTransparency = 0.5
-    self.CenterLabel.Rotation = -360
+    self.CenterLabel.TextStrokeTransparency = 0.9
     self.CenterLabel.ZIndex = 10
     self.CenterLabel.Parent = self.IntroGui
     
-    -- Запускаем анимацию
-    self:PlaySimpleIntro()
+    -- Запускаем анимацию приближения
+    self:PlayApproachAnimation()
 end
 
-function RedHUB:PlaySimpleIntro()
-    -- Фаза 1: Выезд из пустоты с вращением
-    local phase1 = tweenService:Create(
+function RedHUB:PlayApproachAnimation()
+    -- Фаза 1: Медленное приближение из далека
+    local approachTween = tweenService:Create(
         self.CenterLabel,
-        TweenInfo.new(INTRO_DURATION/2, EASE_STYLE, EASE_DIRECTION),
+        TweenInfo.new(INTRO_DURATION/1.5, EASE_STYLE, EASE_DIRECTION),
         {
-            Size = UDim2.new(1, 0, 1, 0),
-            Position = UDim2.new(0.5, 0, 0.5, 0),
-            TextSize = 120,
-            Rotation = 0
+            Size = UDim2.new(0, 400, 0, 150), -- Приближается
+            Position = UDim2.new(0.5, -200, 0.5, -75),
+            TextSize = 80, -- Увеличивается текст
+            TextTransparency = 0, -- Становится видимым
+            TextStrokeTransparency = 0.3
         }
     )
-    phase1:Play()
+    approachTween:Play()
     
-    task.wait(INTRO_DURATION/2)
+    task.wait(INTRO_DURATION/1.5)
     
-    -- Фаза 2: Мерцание и постепенное исчезновение
+    -- Фаза 2: Эффект мерцания как лампочка
     local blinkCount = 0
-    local maxBlinks = 4
+    local maxBlinks = 6
     
-    local function blink()
+    local function lampBlink()
         if blinkCount >= maxBlinks then
-            -- Финальное исчезновение
-            local fadeOut = tweenService:Create(
-                self.CenterLabel,
-                TweenInfo.new(INTRO_DURATION/4, EASE_STYLE, EASE_DIRECTION),
-                {
-                    TextTransparency = 1,
-                    TextStrokeTransparency = 1
-                }
-            )
-            fadeOut:Play()
-            fadeOut.Completed:Connect(function()
-                self.IntroGui:Destroy()
-            end)
+            -- Финальное быстрое мерцание и исчезновение
+            local quickBlinks = 3
+            local quickCount = 0
+            
+            local function quickBlink()
+                if quickCount >= quickBlinks then
+                    -- Полное исчезновение
+                    local fadeOut = tweenService:Create(
+                        self.CenterLabel,
+                        TweenInfo.new(0.3, EASE_STYLE, EASE_DIRECTION),
+                        {
+                            TextTransparency = 1,
+                            TextStrokeTransparency = 1,
+                            TextSize = 100
+                        }
+                    )
+                    fadeOut:Play()
+                    fadeOut.Completed:Connect(function()
+                        self.IntroGui:Destroy()
+                    end)
+                    return
+                end
+                
+                -- Быстрое мерцание
+                local blinkOn = tweenService:Create(
+                    self.CenterLabel,
+                    TweenInfo.new(0.08, EASE_STYLE, EASE_DIRECTION),
+                    {
+                        TextTransparency = 0,
+                        TextColor3 = Color3.fromRGB(255, 255, 150), -- Яркий желтый как лампочка
+                        TextSize = 85
+                    }
+                )
+                
+                local blinkOff = tweenService:Create(
+                    self.CenterLabel,
+                    TweenInfo.new(0.12, EASE_STYLE, EASE_DIRECTION),
+                    {
+                        TextTransparency = 0.9,
+                        TextColor3 = self.Config.Theme.Primary,
+                        TextSize = 80
+                    }
+                )
+                
+                blinkOn:Play()
+                blinkOn.Completed:Connect(function()
+                    task.wait(0.05)
+                    blinkOff:Play()
+                    blinkOff.Completed:Connect(function()
+                        quickCount = quickCount + 1
+                        task.wait(0.07)
+                        quickBlink()
+                    end)
+                end)
+            end
+            
+            quickBlink()
             return
         end
         
-        -- Мерцание: появляется
-        local blinkIn = tweenService:Create(
+        -- Мерцание как лампочка: яркая вспышка
+        local blinkBright = tweenService:Create(
             self.CenterLabel,
             TweenInfo.new(0.15, EASE_STYLE, EASE_DIRECTION),
             {
-                TextTransparency = 0,
-                TextStrokeTransparency = 0.3
+                TextColor3 = Color3.fromRGB(255, 255, 100), -- Яркий желтый
+                TextSize = 85, -- Немного увеличивается
+                TextTransparency = 0
             }
         )
         
-        -- Мерцание: исчезает
-        local blinkOut = tweenService:Create(
+        -- Возврат к нормальному состоянию
+        local blinkNormal = tweenService:Create(
             self.CenterLabel,
-            TweenInfo.new(0.15, EASE_STYLE, EASE_DIRECTION),
+            TweenInfo.new(0.2, EASE_STYLE, EASE_DIRECTION),
             {
-                TextTransparency = 0.7,
-                TextStrokeTransparency = 0.9
+                TextColor3 = self.Config.Theme.Primary, -- Возврат к красному
+                TextSize = 80, -- Нормальный размер
+                TextTransparency = 0.1 -- Слегка прозрачный
             }
         )
         
-        blinkIn:Play()
-        blinkIn.Completed:Connect(function()
+        -- Случайная пауза между мерцаниями (как у настоящей лампочки)
+        local pauseTime = math.random(10, 30) / 100
+        
+        blinkBright:Play()
+        blinkBright.Completed:Connect(function()
             task.wait(0.1)
-            blinkOut:Play()
-            blinkOut.Completed:Connect(function()
+            blinkNormal:Play()
+            blinkNormal.Completed:Connect(function()
                 blinkCount = blinkCount + 1
-                task.wait(0.1)
-                blink()
+                task.wait(pauseTime)
+                lampBlink()
             end)
         end)
     end
     
-    blink()
+    -- Начинаем мерцание
+    task.wait(0.3)
+    lampBlink()
 end
 
 function RedHUB:CreateMainWindow()
@@ -219,7 +270,7 @@ function RedHUB:CreateMainWindow()
     -- Анимация появления основного окна
     local appearTween = tweenService:Create(
         self.MainFrame,
-        TweenInfo.new(0.5, EASE_STYLE, EASE_DIRECTION),
+        TweenInfo.new(0.4, EASE_STYLE, EASE_DIRECTION),
         {Size = self.Config.WindowSize}
     )
     appearTween:Play()
@@ -308,68 +359,6 @@ function RedHUB:AddTab(tabName)
         label.Parent = tabFrame
         
         return label
-    end
-    
-    function tab:AddSlider(sliderName, options, callback)
-        local sliderFrame = Instance.new("Frame")
-        sliderFrame.Name = sliderName
-        sliderFrame.Size = UDim2.new(1, 0, 0, 45)
-        sliderFrame.BackgroundTransparency = 1
-        sliderFrame.Parent = tabFrame
-        
-        local sliderText = Instance.new("TextLabel")
-        sliderText.Name = "SliderText"
-        sliderText.Size = UDim2.new(1, 0, 0, 20)
-        sliderText.BackgroundTransparency = 1
-        sliderText.Text = sliderName .. ": " .. options.Default
-        sliderText.TextColor3 = self.Parent.Config.Theme.Text
-        sliderText.Font = Enum.Font.Gotham
-        sliderText.TextSize = 11
-        sliderText.Parent = sliderFrame
-        
-        local sliderBar = Instance.new("Frame")
-        sliderBar.Name = "SliderBar"
-        sliderBar.Size = UDim2.new(1, 0, 0, 6)
-        sliderBar.Position = UDim2.new(0, 0, 0, 25)
-        sliderBar.BackgroundColor3 = self.Parent.Config.Theme.Secondary
-        sliderBar.BorderSizePixel = 0
-        sliderBar.Parent = sliderFrame
-        
-        local sliderFill = Instance.new("Frame")
-        sliderFill.Name = "SliderFill"
-        sliderFill.Size = UDim2.new((options.Default - options.Min) / (options.Max - options.Min), 0, 1, 0)
-        sliderFill.BackgroundColor3 = self.Parent.Config.Theme.Primary
-        sliderFill.BorderSizePixel = 0
-        sliderFill.Parent = sliderBar
-        
-        local sliding = false
-        
-        sliderBar.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                sliding = true
-            end
-        end)
-        
-        sliderBar.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                sliding = false
-            end
-        end)
-        
-        userInputService.InputChanged:Connect(function(input)
-            if sliding and input.UserInputType == Enum.UserInputType.MouseMovement then
-                local relativeX = (input.Position.X - sliderBar.AbsolutePosition.X) / sliderBar.AbsoluteSize.X
-                relativeX = math.clamp(relativeX, 0, 1)
-                local value = options.Min + (relativeX * (options.Max - options.Min))
-                value = math.floor(value * 100) / 100
-                
-                sliderFill.Size = UDim2.new(relativeX, 0, 1, 0)
-                sliderText.Text = sliderName .. ": " .. value
-                callback(value)
-            end
-        end)
-        
-        return sliderFrame
     end
     
     return tab
