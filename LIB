@@ -7,23 +7,31 @@ local tweenService = game:GetService("TweenService")
 local runService = game:GetService("RunService")
 
 -- Конфигурация анимации
-local ANIMATION_DURATION = 1.5
+local INTRO_DURATION = 3.5
 local EASE_STYLE = Enum.EasingStyle.Quint
 local EASE_DIRECTION = Enum.EasingDirection.Out
 
-function RedHUB:CreateWindow(name)
+function RedHUB:CreateWindow(config)
     local self = setmetatable({}, RedHUB)
-    self.Name = name
-    self.Theme = {
-        Primary = Color3.fromRGB(255, 0, 0),
-        Secondary = Color3.fromRGB(40, 40, 40),
-        Background = Color3.fromRGB(25, 25, 25),
-        Text = Color3.fromRGB(255, 255, 255),
-        Accent = Color3.fromRGB(200, 0, 0)
+    
+    -- Конфигурация по умолчанию
+    self.Config = {
+        Name = config.Name or "REDHUB",
+        Theme = config.Theme or {
+            Primary = Color3.fromRGB(255, 0, 0),
+            Secondary = Color3.fromRGB(30, 30, 30),
+            Background = Color3.fromRGB(20, 20, 20),
+            Text = Color3.fromRGB(255, 255, 255),
+            Accent = Color3.fromRGB(200, 0, 0),
+            DarkOverlay = Color3.fromRGB(0, 0, 0)
+        },
+        CornerText = config.CornerText or "REDHUB",
+        WelcomeText = config.WelcomeText or "WELCOME TO REDHUB!",
+        WindowSize = config.WindowSize or UDim2.new(0, 450, 0, 550)
     }
     
     self:CreateIntroAnimation()
-    task.wait(ANIMATION_DURATION + 1)
+    task.wait(INTRO_DURATION + 1.5)
     self:CreateMainWindow()
     
     return self
@@ -36,115 +44,178 @@ function RedHUB:CreateIntroAnimation()
     self.IntroGui.Parent = game:GetService("CoreGui")
     self.IntroGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     
-    -- Затемнение экрана
+    -- Полное затемнение экрана
     local darkOverlay = Instance.new("Frame")
     darkOverlay.Name = "DarkOverlay"
     darkOverlay.Size = UDim2.new(1, 0, 1, 0)
-    darkOverlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    darkOverlay.BackgroundColor3 = self.Config.Theme.DarkOverlay
     darkOverlay.BackgroundTransparency = 1
     darkOverlay.BorderSizePixel = 0
+    darkOverlay.ZIndex = 10
     darkOverlay.Parent = self.IntroGui
     
-    -- Угловые надписи
+    -- Угловые надписи (больше и длиннее)
     local corners = {
-        {Position = UDim2.new(0, 20, 0, 20), AnchorPoint = Vector2.new(0, 0)},
-        {Position = UDim2.new(1, -20, 0, 20), AnchorPoint = Vector2.new(1, 0)},
-        {Position = UDim2.new(0, 20, 1, -20), AnchorPoint = Vector2.new(0, 1)},
-        {Position = UDim2.new(1, -20, 1, -20), AnchorPoint = Vector2.new(1, 1)}
+        {Position = UDim2.new(0, 30, 0, 30), AnchorPoint = Vector2.new(0, 0), Size = UDim2.new(0, 180, 0, 40)},
+        {Position = UDim2.new(1, -30, 0, 30), AnchorPoint = Vector2.new(1, 0), Size = UDim2.new(0, 180, 0, 40)},
+        {Position = UDim2.new(0, 30, 1, -30), AnchorPoint = Vector2.new(0, 1), Size = UDim2.new(0, 180, 0, 40)},
+        {Position = UDim2.new(1, -30, 1, -30), AnchorPoint = Vector2.new(1, 1), Size = UDim2.new(0, 180, 0, 40)}
     }
     
     self.CornerLabels = {}
     for i, corner in ipairs(corners) do
         local label = Instance.new("TextLabel")
         label.Name = "CornerLabel_" .. i
-        label.Size = UDim2.new(0, 100, 0, 30)
+        label.Size = corner.Size
         label.Position = corner.Position
         label.AnchorPoint = corner.AnchorPoint
         label.BackgroundTransparency = 1
-        label.Text = "REDHUB"
-        label.TextColor3 = self.Theme.Primary
-        label.Font = Enum.Font.GothamBold
-        label.TextSize = 16
+        label.Text = self.Config.CornerText
+        label.TextColor3 = self.Config.Theme.Primary
+        label.Font = Enum.Font.GothamBlack
+        label.TextSize = 22
         label.TextTransparency = 1
+        label.TextXAlignment = Enum.TextXAlignment.Left
+        label.ZIndex = 11
         label.Parent = self.IntroGui
+        
+        -- Эффект тени для текста
+        local textShadow = Instance.new("TextLabel")
+        textShadow.Size = label.Size
+        textShadow.Position = UDim2.new(0, 2, 0, 2)
+        textShadow.BackgroundTransparency = 1
+        textShadow.Text = self.Config.CornerText
+        textShadow.TextColor3 = Color3.fromRGB(0, 0, 0)
+        textShadow.Font = Enum.Font.GothamBlack
+        textShadow.TextSize = 22
+        textShadow.TextTransparency = 0.8
+        textShadow.TextXAlignment = Enum.TextXAlignment.Left
+        textShadow.ZIndex = 10
+        textShadow.Parent = label
         
         table.insert(self.CornerLabels, label)
     end
     
-    -- Центральная надпись
+    -- Центральная надпись с анимацией "клея"
     self.WelcomeLabel = Instance.new("TextLabel")
     self.WelcomeLabel.Name = "WelcomeLabel"
-    self.WelcomeLabel.Size = UDim2.new(0, 300, 0, 50)
-    self.WelcomeLabel.Position = UDim2.new(0.5, -150, 0.5, -25)
+    self.WelcomeLabel.Size = UDim2.new(0, 400, 0, 80)
+    self.WelcomeLabel.Position = UDim2.new(0.5, -200, 0.5, -40)
     self.WelcomeLabel.AnchorPoint = Vector2.new(0.5, 0.5)
     self.WelcomeLabel.BackgroundTransparency = 1
-    self.WelcomeLabel.Text = "Welcome to REDHUB!"
-    self.WelcomeLabel.TextColor3 = self.Theme.Primary
+    self.WelcomeLabel.Text = self.Config.WelcomeText
+    self.WelcomeLabel.TextColor3 = self.Config.Theme.Primary
     self.WelcomeLabel.Font = Enum.Font.GothamBlack
-    self.WelcomeLabel.TextSize = 24
+    self.WelcomeLabel.TextSize = 32
     self.WelcomeLabel.TextTransparency = 1
+    self.WelcomeLabel.TextStrokeTransparency = 0.8
+    self.WelcomeLabel.TextStrokeColor3 = Color3.fromRGB(255, 255, 255)
+    self.WelcomeLabel.ZIndex = 12
     self.WelcomeLabel.Parent = self.IntroGui
+    
+    -- Тень для центральной надписи
+    local welcomeShadow = Instance.new("TextLabel")
+    welcomeShadow.Size = self.WelcomeLabel.Size
+    welcomeShadow.Position = UDim2.new(0, 3, 0, 3)
+    welcomeShadow.AnchorPoint = Vector2.new(0.5, 0.5)
+    welcomeShadow.BackgroundTransparency = 1
+    welcomeShadow.Text = self.Config.WelcomeText
+    welcomeShadow.TextColor3 = Color3.fromRGB(0, 0, 0)
+    welcomeShadow.Font = Enum.Font.GothamBlack
+    welcomeShadow.TextSize = 32
+    welcomeShadow.TextTransparency = 0.9
+    welcomeShadow.TextStrokeTransparency = 0.7
+    welcomeShadow.ZIndex = 11
+    welcomeShadow.Parent = self.WelcomeLabel
     
     -- Запускаем анимацию
     self:PlayIntroAnimation()
 end
 
 function RedHUB:PlayIntroAnimation()
-    -- Анимация затемнения
+    -- Фаза 1: Полное затемнение экрана
     local darkTween = tweenService:Create(
         self.IntroGui.DarkOverlay,
-        TweenInfo.new(ANIMATION_DURATION/2, EASE_STYLE, EASE_DIRECTION),
-        {BackgroundTransparency = 0.7}
+        TweenInfo.new(INTRO_DURATION/3, EASE_STYLE, EASE_DIRECTION),
+        {BackgroundTransparency = 0.2}
     )
     darkTween:Play()
     
-    -- Анимация угловых надписей
-    for _, label in ipairs(self.CornerLabels) do
+    task.wait(INTRO_DURATION/6)
+    
+    -- Фаза 2: Появление угловых надписей с задержкой
+    for i, label in ipairs(self.CornerLabels) do
+        task.wait(0.15)
         local cornerTween = tweenService:Create(
             label,
-            TweenInfo.new(ANIMATION_DURATION, EASE_STYLE, EASE_DIRECTION),
+            TweenInfo.new(INTRO_DURATION/2, EASE_STYLE, EASE_DIRECTION),
             {TextTransparency = 0}
         )
         cornerTween:Play()
     end
     
-    task.wait(ANIMATION_DURATION/2)
+    task.wait(INTRO_DURATION/3)
     
-    -- Анимация центральной надписи
-    local welcomeTween = tweenService:Create(
-        self.WelcomeLabel,
-        TweenInfo.new(ANIMATION_DURATION, EASE_STYLE, EASE_DIRECTION),
-        {TextTransparency = 0, TextColor3 = Color3.fromRGB(255, 255, 255)}
+    -- Фаза 3: Анимация центральной надписи "клея"
+    local welcomeSequence = {
+        -- Появление
+        tweenService:Create(
+            self.WelcomeLabel,
+            TweenInfo.new(0.5, EASE_STYLE, EASE_DIRECTION),
+            {TextTransparency = 0, TextColor3 = Color3.fromRGB(255, 50, 50)}
+        ),
+        -- Увеличение контраста
+        tweenService:Create(
+            self.WelcomeLabel,
+            TweenInfo.new(0.3, EASE_STYLE, EASE_DIRECTION),
+            {TextColor3 = Color3.fromRGB(255, 0, 0), TextStrokeTransparency = 0.5}
+        ),
+        -- Финальный вид
+        tweenService:Create(
+            self.WelcomeLabel,
+            TweenInfo.new(0.4, EASE_STYLE, EASE_DIRECTION),
+            {TextColor3 = Color3.fromRGB(255, 20, 20), TextStrokeColor3 = Color3.fromRGB(255, 255, 0)}
+        )
+    }
+    
+    for _, tween in ipairs(welcomeSequence) do
+        tween:Play()
+        task.wait(tween.TweenInfo.Time)
+    end
+    
+    task.wait(INTRO_DURATION/4)
+    
+    -- Фаза 4: Исчезновение всех элементов
+    local fadeOutDuration = INTRO_DURATION/2
+    
+    -- Затемнение уходит последним
+    local darkFadeOut = tweenService:Create(
+        self.IntroGui.DarkOverlay,
+        TweenInfo.new(fadeOutDuration, EASE_STYLE, EASE_DIRECTION),
+        {BackgroundTransparency = 1}
     )
-    welcomeTween:Play()
     
-    task.wait(ANIMATION_DURATION + 0.5)
-    
-    -- Исчезновение всех элементов
-    local fadeOutTween = tweenService:Create(
-        self.WelcomeLabel,
-        TweenInfo.new(ANIMATION_DURATION/2, EASE_STYLE, EASE_DIRECTION),
-        {TextTransparency = 1}
-    )
-    fadeOutTween:Play()
-    
+    -- Угловые надписи исчезают
     for _, label in ipairs(self.CornerLabels) do
         local fadeOut = tweenService:Create(
             label,
-            TweenInfo.new(ANIMATION_DURATION/2, EASE_STYLE, EASE_DIRECTION),
+            TweenInfo.new(fadeOutDuration/1.5, EASE_STYLE, EASE_DIRECTION),
             {TextTransparency = 1}
         )
         fadeOut:Play()
     end
     
-    local darkFadeOut = tweenService:Create(
-        self.IntroGui.DarkOverlay,
-        TweenInfo.new(ANIMATION_DURATION/2, EASE_STYLE, EASE_DIRECTION),
-        {BackgroundTransparency = 1}
+    -- Центральная надпись исчезает с эффектом
+    local welcomeFadeOut = tweenService:Create(
+        self.WelcomeLabel,
+        TweenInfo.new(fadeOutDuration, EASE_STYLE, EASE_DIRECTION),
+        {TextTransparency = 1, TextStrokeTransparency = 1}
     )
+    welcomeFadeOut:Play()
+    
     darkFadeOut:Play()
     
-    task.wait(ANIMATION_DURATION/2)
+    task.wait(fadeOutDuration)
     self.IntroGui:Destroy()
 end
 
@@ -155,104 +226,82 @@ function RedHUB:CreateMainWindow()
     self.MainGui.Parent = game:GetService("CoreGui")
     self.MainGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     
-    -- Основной фрейм
+    -- Основной фрейм (изначально скрыт)
     self.MainFrame = Instance.new("Frame")
     self.MainFrame.Name = "MainFrame"
-    self.MainFrame.Size = UDim2.new(0, 400, 0, 500)
-    self.MainFrame.Position = UDim2.new(0.5, -200, 0.5, -250)
-    self.MainFrame.BackgroundColor3 = self.Theme.Background
+    self.MainFrame.Size = UDim2.new(0, 0, 0, 0)
+    self.MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+    self.MainFrame.BackgroundColor3 = self.Config.Theme.Background
     self.MainFrame.BorderSizePixel = 0
     self.MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+    self.MainFrame.ClipsDescendants = true
     self.MainFrame.Parent = self.MainGui
     
-    -- Скругление углов
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 8)
-    corner.Parent = self.MainFrame
-    
-    -- Тень
+    -- Тень для основного окна
     local shadow = Instance.new("ImageLabel")
     shadow.Name = "Shadow"
-    shadow.Size = UDim2.new(1, 10, 1, 10)
-    shadow.Position = UDim2.new(0, -5, 0, -5)
+    shadow.Size = UDim2.new(1, 20, 1, 20)
+    shadow.Position = UDim2.new(0, -10, 0, -10)
     shadow.BackgroundTransparency = 1
     shadow.Image = "rbxassetid://1316045217"
     shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-    shadow.ImageTransparency = 0.8
+    shadow.ImageTransparency = 0.9
     shadow.ScaleType = Enum.ScaleType.Slice
-    shadow.SliceScale = 0.05
+    shadow.SliceScale = 0.02
     shadow.ZIndex = -1
     shadow.Parent = self.MainFrame
     
-    -- Заголовок
+    -- Заголовок (прямые углы)
     local titleBar = Instance.new("Frame")
     titleBar.Name = "TitleBar"
-    titleBar.Size = UDim2.new(1, 0, 0, 30)
-    titleBar.BackgroundColor3 = self.Theme.Secondary
+    titleBar.Size = UDim2.new(1, 0, 0, 35)
+    titleBar.BackgroundColor3 = self.Config.Theme.Secondary
     titleBar.BorderSizePixel = 0
+    titleBar.ZIndex = 3
     titleBar.Parent = self.MainFrame
-    
-    local titleCorner = Instance.new("UICorner")
-    titleCorner.CornerRadius = UDim.new(0, 8)
-    titleCorner.Parent = titleBar
     
     local titleText = Instance.new("TextLabel")
     titleText.Name = "TitleText"
     titleText.Size = UDim2.new(1, -60, 1, 0)
-    titleText.Position = UDim2.new(0, 10, 0, 0)
+    titleText.Position = UDim2.new(0, 15, 0, 0)
     titleText.BackgroundTransparency = 1
-    titleText.Text = self.Name
-    titleText.TextColor3 = self.Theme.Primary
+    titleText.Text = self.Config.Name
+    titleText.TextColor3 = self.Config.Theme.Primary
     titleText.Font = Enum.Font.GothamBlack
-    titleText.TextSize = 14
+    titleText.TextSize = 16
     titleText.TextXAlignment = Enum.TextXAlignment.Left
+    titleText.ZIndex = 4
     titleText.Parent = titleBar
     
     -- Кнопка закрытия
     local closeButton = Instance.new("TextButton")
     closeButton.Name = "CloseButton"
-    closeButton.Size = UDim2.new(0, 30, 0, 30)
-    closeButton.Position = UDim2.new(1, -30, 0, 0)
-    closeButton.BackgroundColor3 = self.Theme.Accent
+    closeButton.Size = UDim2.new(0, 35, 0, 35)
+    closeButton.Position = UDim2.new(1, -35, 0, 0)
+    closeButton.BackgroundColor3 = self.Config.Theme.Accent
     closeButton.BorderSizePixel = 0
     closeButton.Text = "X"
     closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
     closeButton.Font = Enum.Font.GothamBold
-    closeButton.TextSize = 14
+    closeButton.TextSize = 16
+    closeButton.ZIndex = 4
     closeButton.Parent = titleBar
     
     closeButton.MouseButton1Click:Connect(function()
-        self.MainGui:Destroy()
+        self:CloseWindow()
     end)
     
     -- Контейнер вкладок
-    self.TabContainer = Instance.new("ScrollingFrame")
+    self.TabContainer = Instance.new("Frame")
     self.TabContainer.Name = "TabContainer"
-    self.TabContainer.Size = UDim2.new(1, -20, 1, -50)
-    self.TabContainer.Position = UDim2.new(0, 10, 0, 40)
+    self.TabContainer.Size = UDim2.new(1, 0, 1, -35)
+    self.TabContainer.Position = UDim2.new(0, 0, 0, 35)
     self.TabContainer.BackgroundTransparency = 1
-    self.TabContainer.BorderSizePixel = 0
-    self.TabContainer.ScrollBarThickness = 4
-    self.TabContainer.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    self.TabContainer.ClipsDescendants = true
     self.TabContainer.Parent = self.MainFrame
     
-    local uiListLayout = Instance.new("UIListLayout")
-    uiListLayout.Padding = UDim.new(0, 10)
-    uiListLayout.Parent = self.TabContainer
-    
     -- Анимация появления основного окна
-    self.MainFrame.Size = UDim2.new(0, 0, 0, 0)
-    self.MainFrame.BackgroundTransparency = 1
-    
-    local appearTween = tweenService:Create(
-        self.MainFrame,
-        TweenInfo.new(0.5, EASE_STYLE, EASE_DIRECTION),
-        {
-            Size = UDim2.new(0, 400, 0, 500),
-            BackgroundTransparency = 0
-        }
-    )
-    appearTween:Play()
+    self:AnimateWindowAppear()
     
     -- Перетаскивание окна
     local dragging = false
@@ -291,44 +340,106 @@ function RedHUB:CreateMainWindow()
     end)
 end
 
+function RedHUB:AnimateWindowAppear()
+    -- Анимация расширения окна
+    local sizeTween = tweenService:Create(
+        self.MainFrame,
+        TweenInfo.new(0.7, EASE_STYLE, EASE_DIRECTION),
+        {Size = self.Config.WindowSize}
+    )
+    
+    -- Анимация появления тени
+    local shadowTween = tweenService:Create(
+        self.MainFrame.Shadow,
+        TweenInfo.new(0.5, EASE_STYLE, EASE_DIRECTION),
+        {ImageTransparency = 0.7}
+    )
+    
+    sizeTween:Play()
+    shadowTween:Play()
+end
+
+function RedHUB:CloseWindow()
+    -- Анимация закрытия окна
+    local closeTween = tweenService:Create(
+        self.MainFrame,
+        TweenInfo.new(0.5, EASE_STYLE, EASE_DIRECTION),
+        {Size = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 1}
+    )
+    
+    closeTween:Play()
+    closeTween.Completed:Connect(function()
+        self.MainGui:Destroy()
+    end)
+end
+
 function RedHUB:AddTab(tabName)
-    local tabFrame = Instance.new("Frame")
+    local tabFrame = Instance.new("ScrollingFrame")
     tabFrame.Name = tabName .. "Tab"
-    tabFrame.Size = UDim2.new(1, 0, 0, 0)
+    tabFrame.Size = UDim2.new(1, 0, 1, 0)
+    tabFrame.Position = UDim2.new(0, 0, 0, 0)
     tabFrame.BackgroundTransparency = 1
-    tabFrame.AutomaticSize = Enum.AutomaticSize.Y
+    tabFrame.BorderSizePixel = 0
+    tabFrame.ScrollBarThickness = 4
+    tabFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    tabFrame.Visible = false
     tabFrame.Parent = self.TabContainer
     
     local tabLayout = Instance.new("UIListLayout")
-    tabLayout.Padding = UDim.new(0, 8)
+    tabLayout.Padding = UDim.new(0, 12)
     tabLayout.Parent = tabFrame
+    
+    local tabPadding = Instance.new("UIPadding")
+    tabPadding.PaddingLeft = UDim.new(0, 15)
+    tabPadding.PaddingRight = UDim.new(0, 15)
+    tabPadding.PaddingTop = UDim.new(0, 15)
+    tabPadding.PaddingBottom = UDim.new(0, 15)
+    tabPadding.Parent = tabFrame
     
     local tab = {
         TabFrame = tabFrame,
-        Parent = self
+        Parent = self,
+        Name = tabName
     }
+    
+    -- Анимация появления вкладки
+    function tab:Show()
+        for _, child in pairs(self.Parent.TabContainer:GetChildren()) do
+            if child:IsA("ScrollingFrame") then
+                child.Visible = false
+            end
+        end
+        self.TabFrame.Visible = true
+        
+        -- Анимация появления
+        self.TabFrame.CanvasPosition = Vector2.new(0, 0)
+        local appearTween = tweenService:Create(
+            self.TabFrame,
+            TweenInfo.new(0.3, EASE_STYLE, EASE_DIRECTION),
+            {ScrollBarImageTransparency = 0}
+        )
+        appearTween:Play()
+    end
     
     function tab:AddButton(buttonName, callback)
         local button = Instance.new("TextButton")
         button.Name = buttonName
-        button.Size = UDim2.new(1, 0, 0, 35)
-        button.BackgroundColor3 = self.Parent.Theme.Secondary
+        button.Size = UDim2.new(1, 0, 0, 40)
+        button.BackgroundColor3 = self.Parent.Config.Theme.Secondary
         button.BorderSizePixel = 0
         button.Text = buttonName
-        button.TextColor3 = self.Parent.Theme.Text
-        button.Font = Enum.Font.Gotham
-        button.TextSize = 12
-        button.Parent = tabFrame
+        button.TextColor3 = self.Parent.Config.Theme.Text
+        button.Font = Enum.Font.GothamBold
+        button.TextSize = 13
+        button.AutoButtonColor = false
+        button.Parent = self.TabFrame
         
-        local buttonCorner = Instance.new("UICorner")
-        buttonCorner.CornerRadius = UDim.new(0, 4)
-        buttonCorner.Parent = button
-        
+        -- Анимация наведения
         button.MouseEnter:Connect(function()
             tweenService:Create(
                 button,
                 TweenInfo.new(0.2, EASE_STYLE, EASE_DIRECTION),
-                {BackgroundColor3 = self.Parent.Theme.Primary}
+                {BackgroundColor3 = self.Parent.Config.Theme.Primary, TextColor3 = Color3.fromRGB(255, 255, 255)}
             ):Play()
         end)
         
@@ -336,7 +447,24 @@ function RedHUB:AddTab(tabName)
             tweenService:Create(
                 button,
                 TweenInfo.new(0.2, EASE_STYLE, EASE_DIRECTION),
-                {BackgroundColor3 = self.Parent.Theme.Secondary}
+                {BackgroundColor3 = self.Parent.Config.Theme.Secondary, TextColor3 = self.Parent.Config.Theme.Text}
+            ):Play()
+        end)
+        
+        -- Анимация нажатия
+        button.MouseButton1Down:Connect(function()
+            tweenService:Create(
+                button,
+                TweenInfo.new(0.1, EASE_STYLE, EASE_DIRECTION),
+                {BackgroundColor3 = Color3.fromRGB(150, 0, 0)}
+            ):Play()
+        end)
+        
+        button.MouseButton1Up:Connect(function()
+            tweenService:Create(
+                button,
+                TweenInfo.new(0.1, EASE_STYLE, EASE_DIRECTION),
+                {BackgroundColor3 = self.Parent.Config.Theme.Primary}
             ):Play()
         end)
         
@@ -345,17 +473,17 @@ function RedHUB:AddTab(tabName)
         return button
     end
     
-    function tab:AddLabel(labelText)
+    function tab:AddLabel(labelText, textSize)
         local label = Instance.new("TextLabel")
         label.Name = "Label"
-        label.Size = UDim2.new(1, 0, 0, 20)
+        label.Size = UDim2.new(1, 0, 0, textSize or 20)
         label.BackgroundTransparency = 1
         label.Text = labelText
-        label.TextColor3 = self.Parent.Theme.Text
+        label.TextColor3 = self.Parent.Config.Theme.Text
         label.Font = Enum.Font.Gotham
-        label.TextSize = 12
+        label.TextSize = textSize or 14
         label.TextXAlignment = Enum.TextXAlignment.Left
-        label.Parent = tabFrame
+        label.Parent = self.TabFrame
         
         return label
     end
@@ -363,54 +491,57 @@ function RedHUB:AddTab(tabName)
     function tab:AddSlider(sliderName, options, callback)
         local sliderFrame = Instance.new("Frame")
         sliderFrame.Name = sliderName
-        sliderFrame.Size = UDim2.new(1, 0, 0, 50)
+        sliderFrame.Size = UDim2.new(1, 0, 0, 55)
         sliderFrame.BackgroundTransparency = 1
-        sliderFrame.Parent = tabFrame
+        sliderFrame.Parent = self.TabFrame
         
         local sliderText = Instance.new("TextLabel")
         sliderText.Name = "SliderText"
         sliderText.Size = UDim2.new(1, 0, 0, 20)
         sliderText.BackgroundTransparency = 1
         sliderText.Text = sliderName .. ": " .. options.Default
-        sliderText.TextColor3 = self.Parent.Theme.Text
+        sliderText.TextColor3 = self.Parent.Config.Theme.Text
         sliderText.Font = Enum.Font.Gotham
         sliderText.TextSize = 12
+        sliderText.TextXAlignment = Enum.TextXAlignment.Left
         sliderText.Parent = sliderFrame
         
         local sliderBar = Instance.new("Frame")
         sliderBar.Name = "SliderBar"
-        sliderBar.Size = UDim2.new(1, 0, 0, 6)
-        sliderBar.Position = UDim2.new(0, 0, 0, 25)
-        sliderBar.BackgroundColor3 = self.Parent.Theme.Secondary
+        sliderBar.Size = UDim2.new(1, 0, 0, 8)
+        sliderBar.Position = UDim2.new(0, 0, 0, 30)
+        sliderBar.BackgroundColor3 = self.Parent.Config.Theme.Secondary
         sliderBar.BorderSizePixel = 0
         sliderBar.Parent = sliderFrame
         
         local sliderFill = Instance.new("Frame")
         sliderFill.Name = "SliderFill"
         sliderFill.Size = UDim2.new((options.Default - options.Min) / (options.Max - options.Min), 0, 1, 0)
-        sliderFill.BackgroundColor3 = self.Parent.Theme.Primary
+        sliderFill.BackgroundColor3 = self.Parent.Config.Theme.Primary
         sliderFill.BorderSizePixel = 0
         sliderFill.Parent = sliderBar
-        
-        local sliderCorner = Instance.new("UICorner")
-        sliderCorner.CornerRadius = UDim.new(0, 3)
-        sliderCorner.Parent = sliderBar
-        
-        local sliderCorner2 = Instance.new("UICorner")
-        sliderCorner2.CornerRadius = UDim.new(0, 3)
-        sliderCorner2.Parent = sliderFill
         
         local sliding = false
         
         sliderBar.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 then
                 sliding = true
+                tweenService:Create(
+                    sliderFill,
+                    TweenInfo.new(0.1, EASE_STYLE, EASE_DIRECTION),
+                    {BackgroundColor3 = Color3.fromRGB(255, 50, 50)}
+                ):Play()
             end
         end)
         
         sliderBar.InputEnded:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 then
                 sliding = false
+                tweenService:Create(
+                    sliderFill,
+                    TweenInfo.new(0.1, EASE_STYLE, EASE_DIRECTION),
+                    {BackgroundColor3 = self.Parent.Config.Theme.Primary}
+                ):Play()
             end
         end)
         
@@ -421,13 +552,24 @@ function RedHUB:AddTab(tabName)
                 local value = options.Min + (relativeX * (options.Max - options.Min))
                 value = math.floor(value * 100) / 100
                 
-                sliderFill.Size = UDim2.new(relativeX, 0, 1, 0)
+                local sizeTween = tweenService:Create(
+                    sliderFill,
+                    TweenInfo.new(0.1, EASE_STYLE, EASE_DIRECTION),
+                    {Size = UDim2.new(relativeX, 0, 1, 0)}
+                )
+                sizeTween:Play()
+                
                 sliderText.Text = sliderName .. ": " .. value
                 callback(value)
             end
         end)
         
         return sliderFrame
+    end
+    
+    -- Показываем первую вкладку по умолчанию
+    if #self.TabContainer:GetChildren() == 1 then
+        tab:Show()
     end
     
     return tab
