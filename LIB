@@ -1,0 +1,437 @@
+local RedHUB = {}
+RedHUB.__index = RedHUB
+
+-- Сервисы
+local userInputService = game:GetService("UserInputService")
+local tweenService = game:GetService("TweenService")
+local runService = game:GetService("RunService")
+
+-- Конфигурация анимации
+local ANIMATION_DURATION = 1.5
+local EASE_STYLE = Enum.EasingStyle.Quint
+local EASE_DIRECTION = Enum.EasingDirection.Out
+
+function RedHUB:CreateWindow(name)
+    local self = setmetatable({}, RedHUB)
+    self.Name = name
+    self.Theme = {
+        Primary = Color3.fromRGB(255, 0, 0),
+        Secondary = Color3.fromRGB(40, 40, 40),
+        Background = Color3.fromRGB(25, 25, 25),
+        Text = Color3.fromRGB(255, 255, 255),
+        Accent = Color3.fromRGB(200, 0, 0)
+    }
+    
+    self:CreateIntroAnimation()
+    task.wait(ANIMATION_DURATION + 1)
+    self:CreateMainWindow()
+    
+    return self
+end
+
+function RedHUB:CreateIntroAnimation()
+    -- Создаем основной GUI для интро
+    self.IntroGui = Instance.new("ScreenGui")
+    self.IntroGui.Name = "RedHUB_Intro"
+    self.IntroGui.Parent = game:GetService("CoreGui")
+    self.IntroGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    
+    -- Затемнение экрана
+    local darkOverlay = Instance.new("Frame")
+    darkOverlay.Name = "DarkOverlay"
+    darkOverlay.Size = UDim2.new(1, 0, 1, 0)
+    darkOverlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    darkOverlay.BackgroundTransparency = 1
+    darkOverlay.BorderSizePixel = 0
+    darkOverlay.Parent = self.IntroGui
+    
+    -- Угловые надписи
+    local corners = {
+        {Position = UDim2.new(0, 20, 0, 20), AnchorPoint = Vector2.new(0, 0)},
+        {Position = UDim2.new(1, -20, 0, 20), AnchorPoint = Vector2.new(1, 0)},
+        {Position = UDim2.new(0, 20, 1, -20), AnchorPoint = Vector2.new(0, 1)},
+        {Position = UDim2.new(1, -20, 1, -20), AnchorPoint = Vector2.new(1, 1)}
+    }
+    
+    self.CornerLabels = {}
+    for i, corner in ipairs(corners) do
+        local label = Instance.new("TextLabel")
+        label.Name = "CornerLabel_" .. i
+        label.Size = UDim2.new(0, 100, 0, 30)
+        label.Position = corner.Position
+        label.AnchorPoint = corner.AnchorPoint
+        label.BackgroundTransparency = 1
+        label.Text = "REDHUB"
+        label.TextColor3 = self.Theme.Primary
+        label.Font = Enum.Font.GothamBold
+        label.TextSize = 16
+        label.TextTransparency = 1
+        label.Parent = self.IntroGui
+        
+        table.insert(self.CornerLabels, label)
+    end
+    
+    -- Центральная надпись
+    self.WelcomeLabel = Instance.new("TextLabel")
+    self.WelcomeLabel.Name = "WelcomeLabel"
+    self.WelcomeLabel.Size = UDim2.new(0, 300, 0, 50)
+    self.WelcomeLabel.Position = UDim2.new(0.5, -150, 0.5, -25)
+    self.WelcomeLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+    self.WelcomeLabel.BackgroundTransparency = 1
+    self.WelcomeLabel.Text = "Welcome to REDHUB!"
+    self.WelcomeLabel.TextColor3 = self.Theme.Primary
+    self.WelcomeLabel.Font = Enum.Font.GothamBlack
+    self.WelcomeLabel.TextSize = 24
+    self.WelcomeLabel.TextTransparency = 1
+    self.WelcomeLabel.Parent = self.IntroGui
+    
+    -- Запускаем анимацию
+    self:PlayIntroAnimation()
+end
+
+function RedHUB:PlayIntroAnimation()
+    -- Анимация затемнения
+    local darkTween = tweenService:Create(
+        self.IntroGui.DarkOverlay,
+        TweenInfo.new(ANIMATION_DURATION/2, EASE_STYLE, EASE_DIRECTION),
+        {BackgroundTransparency = 0.7}
+    )
+    darkTween:Play()
+    
+    -- Анимация угловых надписей
+    for _, label in ipairs(self.CornerLabels) do
+        local cornerTween = tweenService:Create(
+            label,
+            TweenInfo.new(ANIMATION_DURATION, EASE_STYLE, EASE_DIRECTION),
+            {TextTransparency = 0}
+        )
+        cornerTween:Play()
+    end
+    
+    task.wait(ANIMATION_DURATION/2)
+    
+    -- Анимация центральной надписи
+    local welcomeTween = tweenService:Create(
+        self.WelcomeLabel,
+        TweenInfo.new(ANIMATION_DURATION, EASE_STYLE, EASE_DIRECTION),
+        {TextTransparency = 0, TextColor3 = Color3.fromRGB(255, 255, 255)}
+    )
+    welcomeTween:Play()
+    
+    task.wait(ANIMATION_DURATION + 0.5)
+    
+    -- Исчезновение всех элементов
+    local fadeOutTween = tweenService:Create(
+        self.WelcomeLabel,
+        TweenInfo.new(ANIMATION_DURATION/2, EASE_STYLE, EASE_DIRECTION),
+        {TextTransparency = 1}
+    )
+    fadeOutTween:Play()
+    
+    for _, label in ipairs(self.CornerLabels) do
+        local fadeOut = tweenService:Create(
+            label,
+            TweenInfo.new(ANIMATION_DURATION/2, EASE_STYLE, EASE_DIRECTION),
+            {TextTransparency = 1}
+        )
+        fadeOut:Play()
+    end
+    
+    local darkFadeOut = tweenService:Create(
+        self.IntroGui.DarkOverlay,
+        TweenInfo.new(ANIMATION_DURATION/2, EASE_STYLE, EASE_DIRECTION),
+        {BackgroundTransparency = 1}
+    )
+    darkFadeOut:Play()
+    
+    task.wait(ANIMATION_DURATION/2)
+    self.IntroGui:Destroy()
+end
+
+function RedHUB:CreateMainWindow()
+    -- Основное окно GUI
+    self.MainGui = Instance.new("ScreenGui")
+    self.MainGui.Name = "RedHUB_Main"
+    self.MainGui.Parent = game:GetService("CoreGui")
+    self.MainGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    
+    -- Основной фрейм
+    self.MainFrame = Instance.new("Frame")
+    self.MainFrame.Name = "MainFrame"
+    self.MainFrame.Size = UDim2.new(0, 400, 0, 500)
+    self.MainFrame.Position = UDim2.new(0.5, -200, 0.5, -250)
+    self.MainFrame.BackgroundColor3 = self.Theme.Background
+    self.MainFrame.BorderSizePixel = 0
+    self.MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+    self.MainFrame.Parent = self.MainGui
+    
+    -- Скругление углов
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 8)
+    corner.Parent = self.MainFrame
+    
+    -- Тень
+    local shadow = Instance.new("ImageLabel")
+    shadow.Name = "Shadow"
+    shadow.Size = UDim2.new(1, 10, 1, 10)
+    shadow.Position = UDim2.new(0, -5, 0, -5)
+    shadow.BackgroundTransparency = 1
+    shadow.Image = "rbxassetid://1316045217"
+    shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+    shadow.ImageTransparency = 0.8
+    shadow.ScaleType = Enum.ScaleType.Slice
+    shadow.SliceScale = 0.05
+    shadow.ZIndex = -1
+    shadow.Parent = self.MainFrame
+    
+    -- Заголовок
+    local titleBar = Instance.new("Frame")
+    titleBar.Name = "TitleBar"
+    titleBar.Size = UDim2.new(1, 0, 0, 30)
+    titleBar.BackgroundColor3 = self.Theme.Secondary
+    titleBar.BorderSizePixel = 0
+    titleBar.Parent = self.MainFrame
+    
+    local titleCorner = Instance.new("UICorner")
+    titleCorner.CornerRadius = UDim.new(0, 8)
+    titleCorner.Parent = titleBar
+    
+    local titleText = Instance.new("TextLabel")
+    titleText.Name = "TitleText"
+    titleText.Size = UDim2.new(1, -60, 1, 0)
+    titleText.Position = UDim2.new(0, 10, 0, 0)
+    titleText.BackgroundTransparency = 1
+    titleText.Text = self.Name
+    titleText.TextColor3 = self.Theme.Primary
+    titleText.Font = Enum.Font.GothamBlack
+    titleText.TextSize = 14
+    titleText.TextXAlignment = Enum.TextXAlignment.Left
+    titleText.Parent = titleBar
+    
+    -- Кнопка закрытия
+    local closeButton = Instance.new("TextButton")
+    closeButton.Name = "CloseButton"
+    closeButton.Size = UDim2.new(0, 30, 0, 30)
+    closeButton.Position = UDim2.new(1, -30, 0, 0)
+    closeButton.BackgroundColor3 = self.Theme.Accent
+    closeButton.BorderSizePixel = 0
+    closeButton.Text = "X"
+    closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    closeButton.Font = Enum.Font.GothamBold
+    closeButton.TextSize = 14
+    closeButton.Parent = titleBar
+    
+    closeButton.MouseButton1Click:Connect(function()
+        self.MainGui:Destroy()
+    end)
+    
+    -- Контейнер вкладок
+    self.TabContainer = Instance.new("ScrollingFrame")
+    self.TabContainer.Name = "TabContainer"
+    self.TabContainer.Size = UDim2.new(1, -20, 1, -50)
+    self.TabContainer.Position = UDim2.new(0, 10, 0, 40)
+    self.TabContainer.BackgroundTransparency = 1
+    self.TabContainer.BorderSizePixel = 0
+    self.TabContainer.ScrollBarThickness = 4
+    self.TabContainer.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    self.TabContainer.Parent = self.MainFrame
+    
+    local uiListLayout = Instance.new("UIListLayout")
+    uiListLayout.Padding = UDim.new(0, 10)
+    uiListLayout.Parent = self.TabContainer
+    
+    -- Анимация появления основного окна
+    self.MainFrame.Size = UDim2.new(0, 0, 0, 0)
+    self.MainFrame.BackgroundTransparency = 1
+    
+    local appearTween = tweenService:Create(
+        self.MainFrame,
+        TweenInfo.new(0.5, EASE_STYLE, EASE_DIRECTION),
+        {
+            Size = UDim2.new(0, 400, 0, 500),
+            BackgroundTransparency = 0
+        }
+    )
+    appearTween:Play()
+    
+    -- Перетаскивание окна
+    local dragging = false
+    local dragInput, dragStart, startPos
+    
+    titleBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = self.MainFrame.Position
+            
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+    
+    titleBar.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
+            dragInput = input
+        end
+    end)
+    
+    userInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            local delta = input.Position - dragStart
+            self.MainFrame.Position = UDim2.new(
+                startPos.X.Scale, 
+                startPos.X.Offset + delta.X,
+                startPos.Y.Scale, 
+                startPos.Y.Offset + delta.Y
+            )
+        end
+    end)
+end
+
+function RedHUB:AddTab(tabName)
+    local tabFrame = Instance.new("Frame")
+    tabFrame.Name = tabName .. "Tab"
+    tabFrame.Size = UDim2.new(1, 0, 0, 0)
+    tabFrame.BackgroundTransparency = 1
+    tabFrame.AutomaticSize = Enum.AutomaticSize.Y
+    tabFrame.Parent = self.TabContainer
+    
+    local tabLayout = Instance.new("UIListLayout")
+    tabLayout.Padding = UDim.new(0, 8)
+    tabLayout.Parent = tabFrame
+    
+    local tab = {
+        TabFrame = tabFrame,
+        Parent = self
+    }
+    
+    function tab:AddButton(buttonName, callback)
+        local button = Instance.new("TextButton")
+        button.Name = buttonName
+        button.Size = UDim2.new(1, 0, 0, 35)
+        button.BackgroundColor3 = self.Parent.Theme.Secondary
+        button.BorderSizePixel = 0
+        button.Text = buttonName
+        button.TextColor3 = self.Parent.Theme.Text
+        button.Font = Enum.Font.Gotham
+        button.TextSize = 12
+        button.Parent = tabFrame
+        
+        local buttonCorner = Instance.new("UICorner")
+        buttonCorner.CornerRadius = UDim.new(0, 4)
+        buttonCorner.Parent = button
+        
+        button.MouseEnter:Connect(function()
+            tweenService:Create(
+                button,
+                TweenInfo.new(0.2, EASE_STYLE, EASE_DIRECTION),
+                {BackgroundColor3 = self.Parent.Theme.Primary}
+            ):Play()
+        end)
+        
+        button.MouseLeave:Connect(function()
+            tweenService:Create(
+                button,
+                TweenInfo.new(0.2, EASE_STYLE, EASE_DIRECTION),
+                {BackgroundColor3 = self.Parent.Theme.Secondary}
+            ):Play()
+        end)
+        
+        button.MouseButton1Click:Connect(callback)
+        
+        return button
+    end
+    
+    function tab:AddLabel(labelText)
+        local label = Instance.new("TextLabel")
+        label.Name = "Label"
+        label.Size = UDim2.new(1, 0, 0, 20)
+        label.BackgroundTransparency = 1
+        label.Text = labelText
+        label.TextColor3 = self.Parent.Theme.Text
+        label.Font = Enum.Font.Gotham
+        label.TextSize = 12
+        label.TextXAlignment = Enum.TextXAlignment.Left
+        label.Parent = tabFrame
+        
+        return label
+    end
+    
+    function tab:AddSlider(sliderName, options, callback)
+        local sliderFrame = Instance.new("Frame")
+        sliderFrame.Name = sliderName
+        sliderFrame.Size = UDim2.new(1, 0, 0, 50)
+        sliderFrame.BackgroundTransparency = 1
+        sliderFrame.Parent = tabFrame
+        
+        local sliderText = Instance.new("TextLabel")
+        sliderText.Name = "SliderText"
+        sliderText.Size = UDim2.new(1, 0, 0, 20)
+        sliderText.BackgroundTransparency = 1
+        sliderText.Text = sliderName .. ": " .. options.Default
+        sliderText.TextColor3 = self.Parent.Theme.Text
+        sliderText.Font = Enum.Font.Gotham
+        sliderText.TextSize = 12
+        sliderText.Parent = sliderFrame
+        
+        local sliderBar = Instance.new("Frame")
+        sliderBar.Name = "SliderBar"
+        sliderBar.Size = UDim2.new(1, 0, 0, 6)
+        sliderBar.Position = UDim2.new(0, 0, 0, 25)
+        sliderBar.BackgroundColor3 = self.Parent.Theme.Secondary
+        sliderBar.BorderSizePixel = 0
+        sliderBar.Parent = sliderFrame
+        
+        local sliderFill = Instance.new("Frame")
+        sliderFill.Name = "SliderFill"
+        sliderFill.Size = UDim2.new((options.Default - options.Min) / (options.Max - options.Min), 0, 1, 0)
+        sliderFill.BackgroundColor3 = self.Parent.Theme.Primary
+        sliderFill.BorderSizePixel = 0
+        sliderFill.Parent = sliderBar
+        
+        local sliderCorner = Instance.new("UICorner")
+        sliderCorner.CornerRadius = UDim.new(0, 3)
+        sliderCorner.Parent = sliderBar
+        
+        local sliderCorner2 = Instance.new("UICorner")
+        sliderCorner2.CornerRadius = UDim.new(0, 3)
+        sliderCorner2.Parent = sliderFill
+        
+        local sliding = false
+        
+        sliderBar.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                sliding = true
+            end
+        end)
+        
+        sliderBar.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                sliding = false
+            end
+        end)
+        
+        userInputService.InputChanged:Connect(function(input)
+            if sliding and input.UserInputType == Enum.UserInputType.MouseMovement then
+                local relativeX = (input.Position.X - sliderBar.AbsolutePosition.X) / sliderBar.AbsoluteSize.X
+                relativeX = math.clamp(relativeX, 0, 1)
+                local value = options.Min + (relativeX * (options.Max - options.Min))
+                value = math.floor(value * 100) / 100
+                
+                sliderFill.Size = UDim2.new(relativeX, 0, 1, 0)
+                sliderText.Text = sliderName .. ": " .. value
+                callback(value)
+            end
+        end)
+        
+        return sliderFrame
+    end
+    
+    return tab
+end
+
+-- Экспорт библиотеки
+return RedHUB
