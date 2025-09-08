@@ -28,10 +28,16 @@ function RedHUB:CreateWindow(config)
     }
     
     self:CreateSimpleIntro()
-    task.wait(INTRO_DURATION + 0.5)
-    self:CreateMainWindow()
+    -- Ждем полного завершения анимации перед созданием GUI
+    self:WaitForIntroCompletion()
     
     return self
+end
+
+function RedHUB:WaitForIntroCompletion()
+    -- Ждем полное время анимации + небольшой запас
+    task.wait(INTRO_DURATION + 0.2)
+    self:CreateMainWindow()
 end
 
 function RedHUB:CreateSimpleIntro()
@@ -45,7 +51,7 @@ function RedHUB:CreateSimpleIntro()
     self.CenterLabel = Instance.new("TextLabel")
     self.CenterLabel.Name = "CenterLabel"
     self.CenterLabel.Size = UDim2.new(0, 5, 0, 5) -- Очень маленький
-    self.CenterLabel.Position = UDim2.new(0.5, -2.5, 0.5, -2.5)
+    self.CenterLabel.Position = UDim2.new(0.5, -2.5, 0.5, -2.5) -- Точно по центру
     self.CenterLabel.AnchorPoint = Vector2.new(0.5, 0.5)
     self.CenterLabel.BackgroundTransparency = 1
     self.CenterLabel.Text = "RPHUB"
@@ -55,24 +61,26 @@ function RedHUB:CreateSimpleIntro()
     self.CenterLabel.TextTransparency = 0.8 -- Почти невидимый
     self.CenterLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
     self.CenterLabel.TextStrokeTransparency = 0.9
+    self.CenterLabel.Rotation = -360 -- Начинает с полного вращения
     self.CenterLabel.ZIndex = 10
     self.CenterLabel.Parent = self.IntroGui
     
-    -- Запускаем анимацию приближения
+    -- Запускаем анимацию приближения с вращением
     self:PlayApproachAnimation()
 end
 
 function RedHUB:PlayApproachAnimation()
-    -- Фаза 1: Медленное приближение из далека
+    -- Фаза 1: Приближение с вращением ровно по центру
     local approachTween = tweenService:Create(
         self.CenterLabel,
         TweenInfo.new(INTRO_DURATION/1.5, EASE_STYLE, EASE_DIRECTION),
         {
             Size = UDim2.new(0, 400, 0, 150), -- Приближается
-            Position = UDim2.new(0.5, -200, 0.5, -75),
+            Position = UDim2.new(0.5, -200, 0.5, -75), -- Остается по центру
             TextSize = 80, -- Увеличивается текст
             TextTransparency = 0, -- Становится видимым
-            TextStrokeTransparency = 0.3
+            TextStrokeTransparency = 0.3,
+            Rotation = 0 -- Заканчивает вращение
         }
     )
     approachTween:Play()
@@ -198,7 +206,7 @@ function RedHUB:CreateMainWindow()
     self.MainFrame = Instance.new("Frame")
     self.MainFrame.Name = "MainFrame"
     self.MainFrame.Size = UDim2.new(0, 0, 0, 0)
-    self.MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+    self.MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0) -- Начинает по центру
     self.MainFrame.BackgroundColor3 = self.Config.Theme.Background
     self.MainFrame.BorderSizePixel = 0
     self.MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -267,7 +275,7 @@ function RedHUB:CreateMainWindow()
     padding.PaddingBottom = UDim.new(0, 10)
     padding.Parent = self.TabContainer
     
-    -- Анимация появления основного окна
+    -- Анимация появления основного окна (только после завершения интро)
     local appearTween = tweenService:Create(
         self.MainFrame,
         TweenInfo.new(0.4, EASE_STYLE, EASE_DIRECTION),
