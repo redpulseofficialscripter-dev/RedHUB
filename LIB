@@ -7,7 +7,7 @@ local tweenService = game:GetService("TweenService")
 local runService = game:GetService("RunService")
 
 -- Конфигурация анимации
-local INTRO_DURATION = 2.5
+local INTRO_DURATION = 3.0
 local EASE_STYLE = Enum.EasingStyle.Quint
 local EASE_DIRECTION = Enum.EasingDirection.Out
 
@@ -28,7 +28,7 @@ function RedHUB:CreateWindow(config)
     }
     
     self:CreateSimpleIntro()
-    task.wait(INTRO_DURATION + 0.5)
+    task.wait(INTRO_DURATION + 0.8)
     self:CreateMainWindow()
     
     return self
@@ -41,68 +41,99 @@ function RedHUB:CreateSimpleIntro()
     self.IntroGui.Parent = game:GetService("CoreGui")
     self.IntroGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     
-    -- Центральная надпись RPHUB
+    -- Центральная надпись RPHUB (изначально маленькая и повернутая)
     self.CenterLabel = Instance.new("TextLabel")
     self.CenterLabel.Name = "CenterLabel"
-    self.CenterLabel.Size = UDim2.new(0, 300, 0, 80)
-    self.CenterLabel.Position = UDim2.new(0.5, -150, 0.5, -40)
+    self.CenterLabel.Size = UDim2.new(0, 50, 0, 50)
+    self.CenterLabel.Position = UDim2.new(0.5, -25, 0.5, -25)
     self.CenterLabel.AnchorPoint = Vector2.new(0.5, 0.5)
     self.CenterLabel.BackgroundTransparency = 1
     self.CenterLabel.Text = "RPHUB"
     self.CenterLabel.TextColor3 = self.Config.Theme.Primary
     self.CenterLabel.Font = Enum.Font.GothamBlack
-    self.CenterLabel.TextSize = 48
-    self.CenterLabel.TextTransparency = 1
+    self.CenterLabel.TextSize = 10
+    self.CenterLabel.TextTransparency = 0
     self.CenterLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-    self.CenterLabel.TextStrokeTransparency = 0.8
+    self.CenterLabel.TextStrokeTransparency = 0.5
+    self.CenterLabel.Rotation = -360
     self.CenterLabel.ZIndex = 10
     self.CenterLabel.Parent = self.IntroGui
     
-    -- Запускаем простую анимацию
+    -- Запускаем анимацию
     self:PlaySimpleIntro()
 end
 
 function RedHUB:PlaySimpleIntro()
-    -- Анимация появления центральной надписи
-    local appearTween = tweenService:Create(
+    -- Фаза 1: Выезд из пустоты с вращением
+    local phase1 = tweenService:Create(
         self.CenterLabel,
         TweenInfo.new(INTRO_DURATION/2, EASE_STYLE, EASE_DIRECTION),
-        {TextTransparency = 0, TextStrokeTransparency = 0.3}
+        {
+            Size = UDim2.new(1, 0, 1, 0),
+            Position = UDim2.new(0.5, 0, 0.5, 0),
+            TextSize = 120,
+            Rotation = 0
+        }
     )
-    appearTween:Play()
+    phase1:Play()
     
     task.wait(INTRO_DURATION/2)
     
-    -- Анимация увеличения
-    local scaleTween = tweenService:Create(
-        self.CenterLabel,
-        TweenInfo.new(INTRO_DURATION/4, EASE_STYLE, EASE_DIRECTION),
-        {TextSize = 56, TextColor3 = Color3.fromRGB(255, 50, 50)}
-    )
-    scaleTween:Play()
+    -- Фаза 2: Мерцание и постепенное исчезновение
+    local blinkCount = 0
+    local maxBlinks = 4
     
-    task.wait(INTRO_DURATION/4)
+    local function blink()
+        if blinkCount >= maxBlinks then
+            -- Финальное исчезновение
+            local fadeOut = tweenService:Create(
+                self.CenterLabel,
+                TweenInfo.new(INTRO_DURATION/4, EASE_STYLE, EASE_DIRECTION),
+                {
+                    TextTransparency = 1,
+                    TextStrokeTransparency = 1
+                }
+            )
+            fadeOut:Play()
+            fadeOut.Completed:Connect(function()
+                self.IntroGui:Destroy()
+            end)
+            return
+        end
+        
+        -- Мерцание: появляется
+        local blinkIn = tweenService:Create(
+            self.CenterLabel,
+            TweenInfo.new(0.15, EASE_STYLE, EASE_DIRECTION),
+            {
+                TextTransparency = 0,
+                TextStrokeTransparency = 0.3
+            }
+        )
+        
+        -- Мерцание: исчезает
+        local blinkOut = tweenService:Create(
+            self.CenterLabel,
+            TweenInfo.new(0.15, EASE_STYLE, EASE_DIRECTION),
+            {
+                TextTransparency = 0.7,
+                TextStrokeTransparency = 0.9
+            }
+        )
+        
+        blinkIn:Play()
+        blinkIn.Completed:Connect(function()
+            task.wait(0.1)
+            blinkOut:Play()
+            blinkOut.Completed:Connect(function()
+                blinkCount = blinkCount + 1
+                task.wait(0.1)
+                blink()
+            end)
+        end)
+    end
     
-    -- Возврат к нормальному размеру
-    local returnTween = tweenService:Create(
-        self.CenterLabel,
-        TweenInfo.new(INTRO_DURATION/4, EASE_STYLE, EASE_DIRECTION),
-        {TextSize = 48, TextColor3 = self.Config.Theme.Primary}
-    )
-    returnTween:Play()
-    
-    task.wait(INTRO_DURATION/4)
-    
-    -- Исчезновение
-    local fadeOutTween = tweenService:Create(
-        self.CenterLabel,
-        TweenInfo.new(INTRO_DURATION/2, EASE_STYLE, EASE_DIRECTION),
-        {TextTransparency = 1, TextStrokeTransparency = 1}
-    )
-    fadeOutTween:Play()
-    
-    task.wait(INTRO_DURATION/2)
-    self.IntroGui:Destroy()
+    blink()
 end
 
 function RedHUB:CreateMainWindow()
@@ -112,7 +143,7 @@ function RedHUB:CreateMainWindow()
     self.MainGui.Parent = game:GetService("CoreGui")
     self.MainGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     
-    -- Основной фрейм
+    -- Основной фрейм (изначально скрыт)
     self.MainFrame = Instance.new("Frame")
     self.MainFrame.Name = "MainFrame"
     self.MainFrame.Size = UDim2.new(0, 0, 0, 0)
@@ -188,7 +219,7 @@ function RedHUB:CreateMainWindow()
     -- Анимация появления основного окна
     local appearTween = tweenService:Create(
         self.MainFrame,
-        TweenInfo.new(0.4, EASE_STYLE, EASE_DIRECTION),
+        TweenInfo.new(0.5, EASE_STYLE, EASE_DIRECTION),
         {Size = self.Config.WindowSize}
     )
     appearTween:Play()
