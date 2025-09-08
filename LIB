@@ -2,6 +2,7 @@ local RedHUB = {}
 RedHUB.__index = RedHUB
 
 -- Сервисы
+local userInputService = game:GetService("UserInputService")
 local tweenService = game:GetService("TweenService")
 
 function RedHUB:CreateWindow(config)
@@ -22,7 +23,7 @@ function RedHUB:CreateWindow(config)
     -- Сначала полностью выполняем интро
     self:PlayIntroAnimation()
     -- Ждем полного завершения интро
-    task.wait(4) -- Ждем достаточно времени для всей анимации
+    task.wait(4)
     -- Только потом создаем GUI
     self:CreateMainWindow()
     
@@ -57,7 +58,7 @@ function RedHUB:PlayIntroAnimation()
     -- Анимация приближения и вращения
     local approachTween = tweenService:Create(
         centerLabel,
-        TweenInfo.new(2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+        TweenInfo.new(1.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
         {
             Size = UDim2.new(0, 400, 0, 150),
             Position = UDim2.new(0.5, -200, 0.5, -75),
@@ -68,16 +69,43 @@ function RedHUB:PlayIntroAnimation()
         }
     )
 
-    -- Запускаем анимацию и ждем ее завершения
     approachTween:Play()
+    task.wait(1.5)
     
-    -- Ждем завершения первой анимации
-    task.wait(2)
+    -- Мерцание как лампочка (4 раза)
+    for i = 1, 4 do
+        -- Мерцание выкл
+        local blinkOff = tweenService:Create(
+            centerLabel,
+            TweenInfo.new(0.1, Enum.EasingStyle.Linear),
+            {
+                TextTransparency = 0.8,
+                TextColor3 = Color3.fromRGB(150, 0, 0)
+            }
+        )
+        
+        -- Мерцание вкл
+        local blinkOn = tweenService:Create(
+            centerLabel,
+            TweenInfo.new(0.1, Enum.EasingStyle.Linear),
+            {
+                TextTransparency = 0,
+                TextColor3 = self.Config.Theme.Primary
+            }
+        )
+        
+        blinkOff:Play()
+        task.wait(0.15)
+        blinkOn:Play()
+        task.wait(0.15)
+    end
     
-    -- Анимация мерцания и исчезновения
-    local blinkTween = tweenService:Create(
+    task.wait(0.5)
+    
+    -- Финальное исчезновение
+    local fadeOut = tweenService:Create(
         centerLabel,
-        TweenInfo.new(1.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+        TweenInfo.new(0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
         {
             TextTransparency = 1,
             TextStrokeTransparency = 1,
@@ -85,12 +113,10 @@ function RedHUB:PlayIntroAnimation()
         }
     )
     
-    blinkTween:Play()
+    fadeOut:Play()
+    task.wait(0.8)
     
-    -- Ждем завершения анимации исчезновения
-    task.wait(1.5)
-    
-    -- Только после этого уничтожаем интро
+    -- Уничтожаем интро
     introGui:Destroy()
 end
 
@@ -112,13 +138,14 @@ function RedHUB:CreateMainWindow()
     self.MainFrame.ClipsDescendants = true
     self.MainFrame.Parent = self.MainGui
     
-    -- Заголовок
+    -- Заголовок (для перетаскивания)
     local titleBar = Instance.new("Frame")
     titleBar.Name = "TitleBar"
     titleBar.Size = UDim2.new(1, 0, 0, 30)
     titleBar.BackgroundColor3 = self.Config.Theme.Secondary
     titleBar.BorderSizePixel = 0
     titleBar.ZIndex = 2
+    titleBar.Active = true -- Важно для перетаскивания
     titleBar.Parent = self.MainFrame
     
     local titleText = Instance.new("TextLabel")
@@ -181,6 +208,42 @@ function RedHUB:CreateMainWindow()
         {Size = self.Config.WindowSize}
     )
     appearTween:Play()
+    
+    -- Перетаскивание окна
+    local dragging = false
+    local dragInput, dragStart, startPos
+    
+    titleBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = self.MainFrame.Position
+            
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+    
+    titleBar.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
+            dragInput = input
+        end
+    end)
+    
+    userInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            local delta = input.Position - dragStart
+            self.MainFrame.Position = UDim2.new(
+                startPos.X.Scale, 
+                startPos.X.Offset + delta.X,
+                startPos.Y.Scale, 
+                startPos.Y.Offset + delta.Y
+            )
+        end
+    end)
 end
 
 function RedHUB:AddTab(tabName)
