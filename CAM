@@ -4,17 +4,10 @@ RedHUB.__index = RedHUB
 -- Сервисы
 local userInputService = game:GetService("UserInputService")
 local tweenService = game:GetService("TweenService")
-local runService = game:GetService("RunService")
-
--- Конфигурация анимации
-local INTRO_DURATION = 3.5
-local EASE_STYLE = Enum.EasingStyle.Quint
-local EASE_DIRECTION = Enum.EasingDirection.Out
 
 function RedHUB:CreateWindow(config)
     local self = setmetatable({}, RedHUB)
     
-    -- Конфигурация по умолчанию
     self.Config = {
         Name = config.Name or "REDHUB",
         Theme = config.Theme or {
@@ -26,129 +19,105 @@ function RedHUB:CreateWindow(config)
         },
         WindowSize = config.WindowSize or UDim2.new(0, 400, 0, 500)
     }
-    
-    -- Создаем интро и ждем его полного завершения
-    local introCompleted = self:CreateSimpleIntro()
-    
-    -- Ждем пока интро полностью завершится
-    while not introCompleted do
-        task.wait(0.1)
-    end
-    
-    -- Только после этого создаем основной GUI
+
+    -- Сначала полностью выполняем интро
+    self:PlayIntroAnimation()
+    -- Ждем полного завершения интро
+    task.wait(4)
+    -- Только потом создаем GUI
     self:CreateMainWindow()
     
     return self
 end
 
-function RedHUB:CreateSimpleIntro()
-    self.IntroCompleted = false
-    
-    -- Создаем простой GUI для интро
-    self.IntroGui = Instance.new("ScreenGui")
-    self.IntroGui.Name = "RedHUB_Intro"
-    self.IntroGui.Parent = game:GetService("CoreGui")
-    self.IntroGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    
-    -- Центральная надпись RPHUB (очень далеко и маленькая)
-    self.CenterLabel = Instance.new("TextLabel")
-    self.CenterLabel.Name = "CenterLabel"
-    self.CenterLabel.Size = UDim2.new(0, 5, 0, 5)
-    self.CenterLabel.Position = UDim2.new(0.5, -2.5, 0.5, -2.5) -- Точно по центру
-    self.CenterLabel.AnchorPoint = Vector2.new(0.5, 0.5)
-    self.CenterLabel.BackgroundTransparency = 1
-    self.CenterLabel.Text = "RPHUB"
-    self.CenterLabel.TextColor3 = self.Config.Theme.Primary
-    self.CenterLabel.Font = Enum.Font.GothamBlack
-    self.CenterLabel.TextSize = 2
-    self.CenterLabel.TextTransparency = 0.8
-    self.CenterLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-    self.CenterLabel.TextStrokeTransparency = 0.9
-    self.CenterLabel.Rotation = -360
-    self.CenterLabel.ZIndex = 10
-    self.CenterLabel.Parent = self.IntroGui
-    
-    -- Запускаем анимацию
-    self:PlayApproachAnimation()
-    
-    return self.IntroCompleted
-end
+function RedHUB:PlayIntroAnimation()
+    -- Создаем GUI для интро
+    local introGui = Instance.new("ScreenGui")
+    introGui.Name = "RedHUB_Intro"
+    introGui.Parent = game:GetService("CoreGui")
+    introGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
-function RedHUB:PlayApproachAnimation()
-    -- Фаза 1: Приближение с вращением
-    local phase1 = tweenService:Create(
-        self.CenterLabel,
-        TweenInfo.new(INTRO_DURATION/2, EASE_STYLE, EASE_DIRECTION),
+    -- Центральная надпись
+    local centerLabel = Instance.new("TextLabel")
+    centerLabel.Name = "CenterLabel"
+    centerLabel.Size = UDim2.new(0, 5, 0, 5)
+    centerLabel.Position = UDim2.new(0.5, -2.5, 0.5, -2.5)
+    centerLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+    centerLabel.BackgroundTransparency = 1
+    centerLabel.Text = "REDHUB"
+    centerLabel.TextColor3 = self.Config.Theme.Primary
+    centerLabel.Font = Enum.Font.GothamBlack
+    centerLabel.TextSize = 2
+    centerLabel.TextTransparency = 0.8
+    centerLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+    centerLabel.TextStrokeTransparency = 0.9
+    centerLabel.Rotation = -360
+    centerLabel.ZIndex = 10
+    centerLabel.Parent = introGui
+
+    -- Анимация приближения и вращения
+    local approachTween = tweenService:Create(
+        centerLabel,
+        TweenInfo.new(1.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
         {
             Size = UDim2.new(0, 400, 0, 150),
-            Position = UDim2.new(0.5, -200, 0.5, -75), -- Центр экрана
+            Position = UDim2.new(0.5, -200, 0.5, -75),
             TextSize = 80,
             TextTransparency = 0,
             TextStrokeTransparency = 0.3,
             Rotation = 0
         }
     )
-    
-    phase1:Play()
-    phase1.Completed:Connect(function()
-        -- Фаза 2: Мерцание после приближения
-        self:PlayBlinkAnimation()
-    end)
-end
 
-function RedHUB:PlayBlinkAnimation()
-    local blinkCount = 0
-    local maxBlinks = 4
+    approachTween:Play()
+    task.wait(1.5)
     
-    local function blink()
-        if blinkCount >= maxBlinks then
-            -- Финальное исчезновение
-            local fadeOut = tweenService:Create(
-                self.CenterLabel,
-                TweenInfo.new(0.5, EASE_STYLE, EASE_DIRECTION),
-                {
-                    TextTransparency = 1,
-                    TextStrokeTransparency = 1,
-                    TextSize = 100
-                }
-            )
-            
-            fadeOut:Play()
-            fadeOut.Completed:Connect(function()
-                -- Устанавливаем флаг завершения и уничтожаем интро
-                self.IntroCompleted = true
-                self.IntroGui:Destroy()
-            end)
-            return
-        end
-        
-        -- Мерцание
-        local blinkOut = tweenService:Create(
-            self.CenterLabel,
-            TweenInfo.new(0.2, EASE_STYLE, EASE_DIRECTION),
-            {TextTransparency = 0.7}
+    -- Мерцание как лампочка (4 раза)
+    for i = 1, 4 do
+        -- Мерцание выкл
+        local blinkOff = tweenService:Create(
+            centerLabel,
+            TweenInfo.new(0.1, Enum.EasingStyle.Linear),
+            {
+                TextTransparency = 0.8,
+                TextColor3 = Color3.fromRGB(150, 0, 0)
+            }
         )
         
-        local blinkIn = tweenService:Create(
-            self.CenterLabel,
-            TweenInfo.new(0.2, EASE_STYLE, EASE_DIRECTION),
-            {TextTransparency = 0}
+        -- Мерцание вкл
+        local blinkOn = tweenService:Create(
+            centerLabel,
+            TweenInfo.new(0.1, Enum.EasingStyle.Linear),
+            {
+                TextTransparency = 0,
+                TextColor3 = self.Config.Theme.Primary
+            }
         )
         
-        blinkOut:Play()
-        blinkOut.Completed:Connect(function()
-            task.wait(0.1)
-            blinkIn:Play()
-            blinkIn.Completed:Connect(function()
-                blinkCount = blinkCount + 1
-                task.wait(0.2)
-                blink()
-            end)
-        end)
+        blinkOff:Play()
+        task.wait(0.15)
+        blinkOn:Play()
+        task.wait(0.15)
     end
     
     task.wait(0.5)
-    blink()
+    
+    -- Финальное исчезновение
+    local fadeOut = tweenService:Create(
+        centerLabel,
+        TweenInfo.new(0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+        {
+            TextTransparency = 1,
+            TextStrokeTransparency = 1,
+            TextSize = 100
+        }
+    )
+    
+    fadeOut:Play()
+    task.wait(0.8)
+    
+    -- Уничтожаем интро
+    introGui:Destroy()
 end
 
 function RedHUB:CreateMainWindow()
@@ -162,20 +131,21 @@ function RedHUB:CreateMainWindow()
     self.MainFrame = Instance.new("Frame")
     self.MainFrame.Name = "MainFrame"
     self.MainFrame.Size = UDim2.new(0, 0, 0, 0)
-    self.MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0) -- Центр экрана
+    self.MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
     self.MainFrame.BackgroundColor3 = self.Config.Theme.Background
     self.MainFrame.BorderSizePixel = 0
     self.MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
     self.MainFrame.ClipsDescendants = true
     self.MainFrame.Parent = self.MainGui
     
-    -- Заголовок
+    -- Заголовок (для перетаскивания)
     local titleBar = Instance.new("Frame")
     titleBar.Name = "TitleBar"
     titleBar.Size = UDim2.new(1, 0, 0, 30)
     titleBar.BackgroundColor3 = self.Config.Theme.Secondary
     titleBar.BorderSizePixel = 0
     titleBar.ZIndex = 2
+    titleBar.Active = true -- Важно для перетаскивания
     titleBar.Parent = self.MainFrame
     
     local titleText = Instance.new("TextLabel")
@@ -234,7 +204,7 @@ function RedHUB:CreateMainWindow()
     -- Анимация появления основного окна
     local appearTween = tweenService:Create(
         self.MainFrame,
-        TweenInfo.new(0.4, EASE_STYLE, EASE_DIRECTION),
+        TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
         {Size = self.Config.WindowSize}
     )
     appearTween:Play()
@@ -328,5 +298,4 @@ function RedHUB:AddTab(tabName)
     return tab
 end
 
--- Экспорт библиотеки
 return RedHUB
