@@ -5,7 +5,7 @@ local LocalPlayer = game:GetService("Players").LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
 local HttpService = game:GetService("HttpService")
 
-local REDLIB = {
+local OrionLib = {
     Elements = {},
     ThemeObjects = {},
     Connections = {},
@@ -52,7 +52,7 @@ local Success, Response = pcall(function()
 end)
 
 if not Success then
-    warn("\nRed Library - Failed to load Feather Icons. Error code: " .. Response .. "\n")
+    warn("\nOrion Library - Failed to load Feather Icons. Error code: " .. Response .. "\n")
 end 
 
 local function GetIcon(IconName)
@@ -65,36 +65,36 @@ end
 
 local CoreGui = game:GetService("CoreGui")
 
-local RED = Instance.new("ScreenGui")
-RED.Name = _G.UIName or "RED"
-RED.Parent = CoreGui
+local Orion = Instance.new("ScreenGui")
+Orion.Name = _G.UIName or "Orion"
+Orion.Parent = CoreGui
 
 for _, Interface in ipairs(CoreGui:GetChildren()) do
-    if Interface.Name == RED.Name and Interface ~= RED then
+    if Interface.Name == Orion.Name and Interface ~= Orion then
        Interface:Destroy()
     end
 end
 
 
-function REDLIB:IsRunning()
-    return RED.Parent == CoreGui
+function OrionLib:IsRunning()
+    return Orion.Parent == CoreGui
 end
 
 local function AddConnection(Signal, Function)
-    if (not REDLIB:IsRunning()) then
+    if (not OrionLib:IsRunning()) then
         return
     end
     local SignalConnect = Signal:Connect(Function)
-    table.insert(REDLIB.Connections, SignalConnect)
+    table.insert(OrionLib.Connections, SignalConnect)
     return SignalConnect
 end
 
 task.spawn(function()
-    while (REDLIB:IsRunning()) do
+    while (OrionLib:IsRunning()) do
         wait()
     end
 
-    for _, Connection in next, REDLIB.Connections do
+    for _, Connection in next, OrionLib.Connections do
         Connection:Disconnect()
     end
 end)
@@ -165,13 +165,13 @@ local function Create(Name, Properties, Children)
 end
 
 local function CreateElement(ElementName, ElementFunction)
-    REDLIB.Elements[ElementName] = function(...)
+    OrionLib.Elements[ElementName] = function(...)
         return ElementFunction(...)
     end
 end
 
 local function MakeElement(ElementName, ...)
-    local NewElement = REDLIB.Elements[ElementName](...)
+    local NewElement = OrionLib.Elements[ElementName](...)
     return NewElement
 end
 
@@ -214,18 +214,18 @@ local function ReturnProperty(Object)
 end
 
 local function AddThemeObject(Object, Type)
-    if not REDLIB.ThemeObjects[Type] then
-        REDLIB.ThemeObjects[Type] = {}
+    if not OrionLib.ThemeObjects[Type] then
+        OrionLib.ThemeObjects[Type] = {}
     end    
-    table.insert(REDLIB.ThemeObjects[Type], Object)
-    Object[ReturnProperty(Object)] = REDLIB.Themes[REDLIB.SelectedTheme][Type]
+    table.insert(OrionLib.ThemeObjects[Type], Object)
+    Object[ReturnProperty(Object)] = OrionLib.Themes[OrionLib.SelectedTheme][Type]
     return Object
 end    
 
 local function SetTheme()
-    for Name, Type in pairs(REDLIB.ThemeObjects) do
+    for Name, Type in pairs(OrionLib.ThemeObjects) do
         for _, Object in pairs(Type) do
-            Object[ReturnProperty(Object)] = REDLIB.Themes[REDLIB.SelectedTheme][Name]
+            Object[ReturnProperty(Object)] = OrionLib.Themes[OrionLib.SelectedTheme][Name]
         end    
     end    
 end
@@ -241,16 +241,16 @@ end
 local function LoadCfg(Config)
     local Data = HttpService:JSONDecode(Config)
     table.foreach(Data, function(a,b)
-        if REDLIB.Flags[a] then
+        if OrionLib.Flags[a] then
             spawn(function() 
-                if REDLIB.Flags[a].Type == "Colorpicker" then
-                    REDLIB.Flags[a]:Set(UnpackColor(b))
+                if OrionLib.Flags[a].Type == "Colorpicker" then
+                    OrionLib.Flags[a]:Set(UnpackColor(b))
                 else
-                    REDLIB.Flags[a]:Set(b)
+                    OrionLib.Flags[a]:Set(b)
                 end    
             end)
         else
-            warn("Red Library Config Loader - Could not find ", a ,b)
+            warn("Orion Library Config Loader - Could not find ", a ,b)
         end
     end)
 end
@@ -258,7 +258,7 @@ end
 local function SaveCfg(Name)
     if true then return end
     local Data = {}
-    for i,v in pairs(REDLIB.Flags) do
+    for i,v in pairs(OrionLib.Flags) do
         if v.Save then
             if v.Type == "Colorpicker" then
                 Data[i] = PackColor(v.Value)
@@ -267,7 +267,7 @@ local function SaveCfg(Name)
             end
         end 
     end
-    writefile(REDLIB.Folder .. "/" .. Name .. ".txt", tostring(HttpService:JSONEncode(Data)))
+    writefile(OrionLib.Folder .. "/" .. Name .. ".txt", tostring(HttpService:JSONEncode(Data)))
 end
 
 local WhitelistedMouse = {Enum.UserInputType.MouseButton1, Enum.UserInputType.MouseButton2,Enum.UserInputType.MouseButton3}
@@ -411,12 +411,12 @@ local NotificationHolder = SetProps(SetChildren(MakeElement("TFrame"), {
     Position = UDim2.new(1, -25, 1, -25),
     Size = UDim2.new(0, 300, 1, -25),
     AnchorPoint = Vector2.new(1, 1),
-    Parent = RED
+    Parent = Orion
 })
 
 
 
-function REDLIB:MakeNotification(NotificationConfig)
+function OrionLib:MakeNotification(NotificationConfig)
     spawn(function()
         NotificationConfig.Name = NotificationConfig.Name or "Notification"
         NotificationConfig.Content = NotificationConfig.Content or "Test"
@@ -434,7 +434,7 @@ function REDLIB:MakeNotification(NotificationConfig)
             Size = UDim2.new(1, 0, 0, 0),
             Position = UDim2.new(1, -55, 0, 0),
             BackgroundTransparency = 0,
-            BackgroundColor3 = REDLIB.Themes[REDLIB.SelectedTheme].Main,
+            BackgroundColor3 = OrionLib.Themes[OrionLib.SelectedTheme].Main,
             AutomaticSize = Enum.AutomaticSize.Y
         }), {
             MakeElement("Stroke", Color3.fromRGB(93, 93, 93), 1.2),
@@ -478,7 +478,7 @@ function REDLIB:MakeNotification(NotificationConfig)
     end)
 end    
 
-function REDLIB:MakeNotification2(NotificationConfig)
+function OrionLib:MakeNotification2(NotificationConfig)
     spawn(function()
         NotificationConfig.Name = NotificationConfig.Name or "Notification"
         NotificationConfig.Content = NotificationConfig.Content or "Test"
@@ -496,7 +496,7 @@ function REDLIB:MakeNotification2(NotificationConfig)
             Size = UDim2.new(1, 0, 0, 0),
             Position = UDim2.new(1, -55, 0, 0),
             BackgroundTransparency = 0,
-            BackgroundColor3 = REDLIB.Themes[REDLIB.SelectedTheme].Main,
+            BackgroundColor3 = OrionLib.Themes[OrionLib.SelectedTheme].Main,
             AutomaticSize = Enum.AutomaticSize.Y
         }), {
             MakeElement("Stroke", Color3.fromRGB(93, 93, 93), 1.2),
@@ -541,12 +541,12 @@ function REDLIB:MakeNotification2(NotificationConfig)
 end    
 
 
-function REDLIB:Init(Window)
-    if REDLIB.SaveCfg then    
+function OrionLib:Init(Window)
+    if OrionLib.SaveCfg then    
         pcall(function()
-            if isfile(REDLIB.Folder .. "/" .. game.GameId .. ".txt") then
-                LoadCfg(readfile(REDLIB.Folder .. "/" .. game.GameId .. ".txt"))
-                REDLIB:MakeNotification({
+            if isfile(OrionLib.Folder .. "/" .. game.GameId .. ".txt") then
+                LoadCfg(readfile(OrionLib.Folder .. "/" .. game.GameId .. ".txt"))
+                OrionLib:MakeNotification({
                     Name = "Configuration",
                     Content = "Auto-loaded configuration for the game " .. game.GameId .. ".",
                     Time = 5
@@ -589,7 +589,7 @@ function REDLIB:Init(Window)
     
     
     
-    local TabHolder = REDLIB.Internal.TabHolder
+    local TabHolder = OrionLib.Internal.TabHolder
     for _, v in ipairs(TabHolder:GetChildren()) do
         if v:IsA("TextButton") and v.Title.Text == "Settings" then
             v:Destroy()
@@ -597,27 +597,27 @@ function REDLIB:Init(Window)
     end
 end 
 
-function REDLIB:MakeWindow(WindowConfig)
+function OrionLib:MakeWindow(WindowConfig)
     local FirstTab = true
     local Minimized = false
     local Loaded = false
     local UIHidden = false
 
     WindowConfig = WindowConfig or {}
-    WindowConfig.Name = WindowConfig.Name or "Red Library"
+    WindowConfig.Name = WindowConfig.Name or "Orion Library"
     WindowConfig.ConfigFolder = WindowConfig.ConfigFolder or WindowConfig.Name
     WindowConfig.SaveConfig = WindowConfig.SaveConfig or false
     WindowConfig.HidePremium = WindowConfig.HidePremium or false
     if WindowConfig.IntroEnabled == nil then
         WindowConfig.IntroEnabled = true
     end
-    WindowConfig.IntroText = WindowConfig.IntroText or "Red Library"
+    WindowConfig.IntroText = WindowConfig.IntroText or "Orion Library"
     WindowConfig.CloseCallback = WindowConfig.CloseCallback or function() end
     WindowConfig.ShowIcon = WindowConfig.ShowIcon or false
     WindowConfig.Icon = WindowConfig.Icon or "rbxassetid://8834748103"
     WindowConfig.IntroIcon = WindowConfig.IntroIcon or "rbxassetid://8834748103"
-    REDLIB.Folder = WindowConfig.ConfigFolder
-    REDLIB.SaveCfg = WindowConfig.SaveConfig
+    OrionLib.Folder = WindowConfig.ConfigFolder
+    OrionLib.SaveCfg = WindowConfig.SaveConfig
 
     if WindowConfig.SaveConfig then
         if not isfolder(WindowConfig.ConfigFolder) then
@@ -632,8 +632,8 @@ function REDLIB:MakeWindow(WindowConfig)
         MakeElement("Padding", 8, 0, 0, 8)
     }), "Divider")
     
-    REDLIB.Internal = {}
-    REDLIB.Internal.TabHolder = TabHolder
+    OrionLib.Internal = {}
+    OrionLib.Internal.TabHolder = TabHolder
 
     AddConnection(TabHolder.UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"), function()
         TabHolder.CanvasSize = UDim2.new(0, 0, 0, TabHolder.UIListLayout.AbsoluteContentSize.Y + 16)
@@ -768,7 +768,7 @@ function REDLIB:MakeWindow(WindowConfig)
     -- size 1: UDim2.new(0, 550, 0, 450)
     -- size 2: UDim2.new(0, 600, 0, 420)
     local MainWindow = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 10), {
-        Parent = Red,
+        Parent = Orion,
         Position = UDim2.new(0.5, -307, 0.5, -172),
         Size = UDim2.new(0, 550, 0, 400),
         ClipsDescendants = true
@@ -878,7 +878,7 @@ function REDLIB:MakeWindow(WindowConfig)
         --t.Completed:Wait()
         MainWindow.Visible = false
         UIHidden = true
-        REDLIB:MakeNotification({
+        OrionLib:MakeNotification({
             Name = "Interface Hidden",
             Content = 'Press "Q" to reopen the interface',
             Time = 10,
@@ -923,7 +923,7 @@ function REDLIB:MakeWindow(WindowConfig)
     local function LoadSequence()
         MainWindow.Visible = false
         local LoadSequenceLogo = SetProps(MakeElement("Image", WindowConfig.IntroIcon), {
-            Parent = Red,
+            Parent = Orion,
             AnchorPoint = Vector2.new(0.5, 0.5),
             Position = UDim2.new(0.5, 0, 0.4, 0),
             Size = UDim2.new(0, 28, 0, 28),
@@ -932,7 +932,7 @@ function REDLIB:MakeWindow(WindowConfig)
         })
 
         local LoadSequenceText = SetProps(MakeElement("Label", WindowConfig.IntroText, 14), {
-            Parent = Red,
+            Parent = Orion,
             Size = UDim2.new(1, 0, 1, 0),
             AnchorPoint = Vector2.new(0.5, 0.5),
             Position = UDim2.new(0.5, 19, 0.5, 0),
@@ -956,11 +956,11 @@ function REDLIB:MakeWindow(WindowConfig)
     -- prompt stuff --
     local Prompt = {};
 
-    -- Players.yt4r5.PlayerGui.Red.Frame.ScreenGui
+    -- Players.yt4r5.PlayerGui.Orion.Frame.ScreenGui
 
-    -- Players.yt4r5.PlayerGui.Red.Frame.ScreenGui.PromptCoverShadow
+    -- Players.yt4r5.PlayerGui.Orion.Frame.ScreenGui.PromptCoverShadow
     Prompt["2"] = Instance.new("Frame", MainWindow);
-    Prompt["2"]["BackgroundColor3"] = REDLIB.Themes[REDLIB.SelectedTheme].Main
+    Prompt["2"]["BackgroundColor3"] = OrionLib.Themes[OrionLib.SelectedTheme].Main
     Prompt["2"]["BackgroundTransparency"] = 0.30000001192092896;
     Prompt["2"]["Size"] = MainWindow.Size;
     Prompt["2"]["Name"] = [[PromptCoverShadow]];
@@ -970,10 +970,10 @@ function REDLIB:MakeWindow(WindowConfig)
     local UICornerPromptCoverShadow = Instance.new("UICorner")
     UICornerPromptCoverShadow.Parent = Prompt["2"]
 
-    -- Players.yt4r5.PlayerGui.Red.Frame.ScreenGui.Prompt
+    -- Players.yt4r5.PlayerGui.Orion.Frame.ScreenGui.Prompt
     Prompt["3"] = Instance.new("Frame", MainWindow);
     Prompt["3"]["ZIndex"] = 999;
-    Prompt["3"]["BackgroundColor3"] =  REDLIB.Themes[REDLIB.SelectedTheme].Second
+    Prompt["3"]["BackgroundColor3"] =  OrionLib.Themes[OrionLib.SelectedTheme].Second
     Prompt["3"]["AnchorPoint"] = Vector2.new(0.5, 0.5);
     Prompt["3"]["Size"] = UDim2.new(0, 300, 0, 200);
     Prompt["3"]["BorderColor3"] = Color3.fromRGB(31, 31, 31);
@@ -981,7 +981,7 @@ function REDLIB:MakeWindow(WindowConfig)
     Prompt["3"]["Name"] = [[Prompt]];
     Prompt["3"].Visible = false
 
-    -- Players.yt4r5.PlayerGui.Red.Frame.ScreenGui.Prompt.Title
+    -- Players.yt4r5.PlayerGui.Orion.Frame.ScreenGui.Prompt.Title
     Prompt["4"] = Instance.new("TextLabel", Prompt["3"]);
     Prompt["4"]["ZIndex"] = 999;
     Prompt["4"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
@@ -996,11 +996,11 @@ function REDLIB:MakeWindow(WindowConfig)
     Prompt["4"]["Position"] = UDim2.new(0.5, 0, 0, 0);
     Prompt["4"].Visible = false
 
-    -- Players.yt4r5.PlayerGui.Red.Frame.ScreenGui.Prompt.UICorner
+    -- Players.yt4r5.PlayerGui.Orion.Frame.ScreenGui.Prompt.UICorner
     Prompt["5"] = Instance.new("UICorner", Prompt["3"]);
 
 
-    -- Players.yt4r5.PlayerGui.Red.Frame.ScreenGui.Prompt.Description
+    -- Players.yt4r5.PlayerGui.Orion.Frame.ScreenGui.Prompt.Description
     Prompt["6"] = Instance.new("TextLabel", Prompt["3"]);
     Prompt["6"]["TextWrapped"] = true;
     Prompt["6"]["ZIndex"] = 999;
@@ -1016,22 +1016,22 @@ function REDLIB:MakeWindow(WindowConfig)
     Prompt["6"]["Position"] = UDim2.new(0.5, 0, 0.5, 0);
     Prompt["6"].Visible = false
 
-    -- Players.yt4r5.PlayerGui.Red.Frame.ScreenGui.Prompt.OkButton
+    -- Players.yt4r5.PlayerGui.Orion.Frame.ScreenGui.Prompt.OkButton
     Prompt["7"] = Instance.new("Frame", Prompt["3"]);
     Prompt["7"]["ZIndex"] = 999;
     Prompt["7"]["BorderSizePixel"] = 0;
-    Prompt["7"]["BackgroundColor3"] = REDLIB.Themes[REDLIB.SelectedTheme].Second
+    Prompt["7"]["BackgroundColor3"] =  OrionLib.Themes[OrionLib.SelectedTheme].Second
     Prompt["7"]["AnchorPoint"] = Vector2.new(0.5, 0.5);
     Prompt["7"]["Size"] = UDim2.new(0.5, 0, 0, 33);
     Prompt["7"]["Position"] = UDim2.new(0.5, 0, 0.8999999761581421, -5);
     Prompt["7"]["Name"] = [[OkButton]];
     Prompt["7"].Visible = false
 
-    -- Players.yt4r5.PlayerGui.Red.Frame.ScreenGui.Prompt.OkButton.UICorner
+    -- Players.yt4r5.PlayerGui.Orion.Frame.ScreenGui.Prompt.OkButton.UICorner
     Prompt["8"] = Instance.new("UICorner", Prompt["7"]);
     Prompt["8"]["CornerRadius"] = UDim.new(0, 5);
 
-    -- Players.yt4r5.PlayerGui.Red.Frame.ScreenGui.Prompt.OkButton.Content
+    -- Players.yt4r5.PlayerGui.Orion.Frame.ScreenGui.Prompt.OkButton.Content
     Prompt["9"] = Instance.new("TextLabel", Prompt["7"]);
     Prompt["9"]["ZIndex"] = 999;
     Prompt["9"]["RichText"] = true;
@@ -1044,11 +1044,11 @@ function REDLIB:MakeWindow(WindowConfig)
     Prompt["9"]["BackgroundTransparency"] = 1;
     Prompt["9"].Visible = false
 
-    -- Players.yt4r5.PlayerGui.Red.Frame.ScreenGui.Prompt.OkButton.UIStroke
+    -- Players.yt4r5.PlayerGui.Orion.Frame.ScreenGui.Prompt.OkButton.UIStroke
     Prompt["a"] = Instance.new("UIStroke", Prompt["7"]);
     Prompt["a"]["Color"] = Color3.fromRGB(61, 61, 61);
 
-    -- Players.yt4r5.PlayerGui.Red.Frame.ScreenGui.Prompt.OkButton.TextButton
+    -- Players.yt4r5.PlayerGui.Orion.Frame.ScreenGui.Prompt.OkButton.TextButton
     Prompt["b"] = Instance.new("TextButton", Prompt["7"]);
     Prompt["b"]["ZIndex"] = 999;
     Prompt["b"]["BorderSizePixel"] = 0;
@@ -1059,7 +1059,7 @@ function REDLIB:MakeWindow(WindowConfig)
     Prompt["b"].Visible = false
     
     
-    --[=[ d888b  db    db d888888b      .d888b.      db      db    db  .d8b. 88' Y8b 88    88   `88'        VP  `8D      88      88    88 d8' `8b 88      88    88    88            odD'      88      88    88 88ooo88 88  ooo 88    88    88          .88'        88      88    88 88~~~88 88. ~8~ 88b  d88   .88.        j88.         88booo. 88b  d88 88   88 Y888P  ~Y8888P' Y888888P      888888D      Y88888P ~Y8888P' YP   YP  CONVERTER ]=] -- Instances: 17 | Scripts: 0 | Modules: 0 local AnimatedBorder = {}; -- Players.yt4r5.PlayerGui.Red.Frame.ScreenGui AnimatedBorder["1"] = Instance.new("ScreenGui", game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")); AnimatedBorder["1"]["ZIndexBehavior"] = Enum.ZIndexBehavior.Sibling; -- Players.yt4r5.PlayerGui.Red.Frame.ScreenGui.Prompt AnimatedBorder["2"] = Instance.new("Frame", AnimatedBorder["1"]); AnimatedBorder["2"]["ZIndex"] = 999; AnimatedBorder["2"]["BackgroundColor3"] = Color3.fromRGB(32, 32, 32); AnimatedBorder["2"]["AnchorPoint"] = Vector2.new(0.5, 0.5); AnimatedBorder["2"]["BackgroundTransparency"] = 1; AnimatedBorder["2"]["Size"] = UDim2.new(0, 300, 0, 200); AnimatedBorder["2"]["BorderColor3"] = Color3.fromRGB(32, 32, 32); AnimatedBorder["2"]["Position"] = UDim2.new(0.5, 0, 0.5, 0); AnimatedBorder["2"]["Visible"] = false; AnimatedBorder["2"]["Name"] = [[Prompt]]; -- Players.yt4r5.PlayerGui.Red.Frame.ScreenGui.Prompt.Title AnimatedBorder["3"] = Instance.new("TextLabel", AnimatedBorder["2"]); AnimatedBorder["3"]["ZIndex"] = 999; AnimatedBorder["3"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255); AnimatedBorder["3"]["TextTransparency"] = 1; AnimatedBorder["3"]["TextSize"] = 22; AnimatedBorder["3"]["TextColor3"] = Color3.fromRGB(255, 255, 255); AnimatedBorder["3"]["AnchorPoint"] = Vector2.new(0.5, 0); AnimatedBorder["3"]["Visible"] = false; AnimatedBorder["3"]["Size"] = UDim2.new(0, 200, 0, 50); AnimatedBorder["3"]["Text"] = [[This is a prompt title]]; AnimatedBorder["3"]["Name"] = [[Title]]; AnimatedBorder["3"]["Font"] = Enum.Font.GothamBold; AnimatedBorder["3"]["BackgroundTransparency"] = 1; AnimatedBorder["3"]["Position"] = UDim2.new(0.5, 0, 0, 0); -- Players.yt4r5.PlayerGui.Red.Frame.ScreenGui.Prompt.UICorner AnimatedBorder["4"] = Instance.new("UICorner", AnimatedBorder["2"]); -- Players.yt4r5.PlayerGui.Red.Frame.ScreenGui.Prompt.Description AnimatedBorder["5"] = Instance.new("TextLabel", AnimatedBorder["2"]); AnimatedBorder["5"]["TextWrapped"] = true; AnimatedBorder["5"]["ZIndex"] = 999; AnimatedBorder["5"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255); AnimatedBorder["5"]["TextTransparency"] = 1; AnimatedBorder["5"]["TextSize"] = 14; AnimatedBorder["5"]["TextColor3"] = Color3.fromRGB(172, 172, 172); AnimatedBorder["5"]["AnchorPoint"] = Vector2.new(0.5, 0.5); AnimatedBorder["5"]["Visible"] = false; AnimatedBorder["5"]["Size"] = UDim2.new(0, 280, 0, 150); AnimatedBorder["5"]["Text"] = [[Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque non felis facilisis, finibus massa et, facilisis lorem. Vivamus vel erat ut metus fermentum mattis aliquam id lacus. In quam metus,]]; AnimatedBorder["5"]["Name"] = [[Description]]; AnimatedBorder["5"]["Font"] = Enum.Font.GothamBold; AnimatedBorder["5"]["BackgroundTransparency"] = 1; AnimatedBorder["5"]["Position"] = UDim2.new(0.5, 0, 0.5, 0); -- Players.yt4r5.PlayerGui.Red.Frame.ScreenGui.Prompt.Buttons AnimatedBorder["6"] = Instance.new("Frame", AnimatedBorder["2"]); AnimatedBorder["6"]["ZIndex"] = 1000; AnimatedBorder["6"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255); AnimatedBorder["6"]["AnchorPoint"] = Vector2.new(0.5, 0.5); AnimatedBorder["6"]["BackgroundTransparency"] = 1; AnimatedBorder["6"]["Size"] = UDim2.new(1, 0, 0, 100); AnimatedBorder["6"]["Position"] = UDim2.new(0.5, 0, 0.5, 30); AnimatedBorder["6"]["Name"] = [[Buttons]]; -- Players.yt4r5.PlayerGui.Red.Frame.ScreenGui.Prompt.Buttons.OkButton AnimatedBorder["7"] = Instance.new("Frame", AnimatedBorder["6"]); AnimatedBorder["7"]["ZIndex"] = 1001; AnimatedBorder["7"]["BorderSizePixel"] = 0; AnimatedBorder["7"]["BackgroundColor3"] = Color3.fromRGB(34, 34, 34); AnimatedBorder["7"]["AnchorPoint"] = Vector2.new(0.5, 0.5); AnimatedBorder["7"]["BackgroundTransparency"] = 1; AnimatedBorder["7"]["Size"] = UDim2.new(0.20000000298023224, 0, 0, 33); AnimatedBorder["7"]["Position"] = UDim2.new(0.5, 0, 0.8999999761581421, -5); AnimatedBorder["7"]["Visible"] = false; AnimatedBorder["7"]["Name"] = [[OkButton]]; -- Players.yt4r5.PlayerGui.Red.Frame.ScreenGui.Prompt.Buttons.OkButton.UICorner AnimatedBorder["8"] = Instance.new("UICorner", AnimatedBorder["7"]); AnimatedBorder["8"]["CornerRadius"] = UDim.new(0, 5); -- Players.yt4r5.PlayerGui.Red.Frame.ScreenGui.Prompt.Buttons.OkButton.Content AnimatedBorder["9"] = Instance.new("TextLabel", AnimatedBorder["7"]); AnimatedBorder["9"]["ZIndex"] = 999; AnimatedBorder["9"]["RichText"] = true; AnimatedBorder["9"]["TextTransparency"] = 1; AnimatedBorder["9"]["TextSize"] = 15; AnimatedBorder["9"]["TextColor3"] = Color3.fromRGB(242, 242, 242); AnimatedBorder["9"]["Visible"] = false; AnimatedBorder["9"]["Size"] = UDim2.new(1, 0, 1, 0); AnimatedBorder["9"]["Text"] = [[Dismiss]]; AnimatedBorder["9"]["Name"] = [[Content]]; AnimatedBorder["9"]["Font"] = Enum.Font.GothamBold; AnimatedBorder["9"]["BackgroundTransparency"] = 1; -- Players.yt4r5.PlayerGui.Red.Frame.ScreenGui.Prompt.Buttons.OkButton.UIStroke AnimatedBorder["a"] = Instance.new("UIStroke", AnimatedBorder["7"]); AnimatedBorder["a"]["Color"] = Color3.fromRGB(62, 62, 62); AnimatedBorder["a"]["Transparency"] = 1; -- Players.yt4r5.PlayerGui.Red.Frame.ScreenGui.Prompt.Buttons.OkButton.TextButton AnimatedBorder["b"] = Instance.new("TextButton", AnimatedBorder["7"]); AnimatedBorder["b"]["ZIndex"] = 999; AnimatedBorder["b"]["BorderSizePixel"] = 0; AnimatedBorder["b"]["AutoButtonColor"] = false; AnimatedBorder["b"]["TextTransparency"] = 1; AnimatedBorder["b"]["Visible"] = false; AnimatedBorder["b"]["Size"] = UDim2.new(1, 0, 1, 0); AnimatedBorder["b"]["Text"] = [[]]; AnimatedBorder["b"]["BackgroundTransparency"] = 1; -- Players.yt4r5.PlayerGui.Red.Frame.ScreenGui.Prompt.Buttons.UIListLayout AnimatedBorder["c"] = Instance.new("UIListLayout", AnimatedBorder["6"]); AnimatedBorder["c"]["VerticalAlignment"] = Enum.VerticalAlignment.Bottom; AnimatedBorder["c"]["FillDirection"] = Enum.FillDirection.Horizontal; AnimatedBorder["c"]["HorizontalAlignment"] = Enum.HorizontalAlignment.Center; AnimatedBorder["c"]["Padding"] = UDim.new(0, 6); AnimatedBorder["c"]["SortOrder"] = Enum.SortOrder.LayoutOrder; -- Players.yt4r5.PlayerGui.Red.Frame.ScreenGui.Prompt.Buttons.OkButton AnimatedBorder["d"] = Instance.new("Frame", AnimatedBorder["6"]); AnimatedBorder["d"]["ZIndex"] = 1001; AnimatedBorder["d"]["BorderSizePixel"] = 0; AnimatedBorder["d"]["BackgroundColor3"] = Color3.fromRGB(34, 34, 34); AnimatedBorder["d"]["AnchorPoint"] = Vector2.new(0.5, 0.5); AnimatedBorder["d"]["BackgroundTransparency"] = 1; AnimatedBorder["d"]["Size"] = UDim2.new(0.20000000298023224, 0, 0, 33); AnimatedBorder["d"]["Position"] = UDim2.new(0.5, 0, 0.8999999761581421, -5); AnimatedBorder["d"]["Name"] = [[OkButton]]; -- Players.yt4r5.PlayerGui.Red.Frame.ScreenGui.Prompt.Buttons.OkButton.UICorner AnimatedBorder["e"] = Instance.new("UICorner", AnimatedBorder["d"]); AnimatedBorder["e"]["CornerRadius"] = UDim.new(0, 5); -- Players.yt4r5.PlayerGui.Red.Frame.ScreenGui.Prompt.Buttons.OkButton.Content AnimatedBorder["f"] = Instance.new("TextLabel", AnimatedBorder["d"]); AnimatedBorder["f"]["ZIndex"] = 999; AnimatedBorder["f"]["RichText"] = true; AnimatedBorder["f"]["TextSize"] = 15; AnimatedBorder["f"]["TextColor3"] = Color3.fromRGB(242, 242, 242); AnimatedBorder["f"]["Size"] = UDim2.new(1, 0, 1, 0); AnimatedBorder["f"]["Text"] = [[Ok]]; AnimatedBorder["f"]["Name"] = [[Content]]; AnimatedBorder["f"]["Font"] = Enum.Font.GothamBold; AnimatedBorder["f"]["BackgroundTransparency"] = 1; -- Players.yt4r5.PlayerGui.Red.Frame.ScreenGui.Prompt.Buttons.OkButton.UIStroke AnimatedBorder["10"] = Instance.new("UIStroke", AnimatedBorder["d"]); AnimatedBorder["10"]["Color"] = Color3.fromRGB(62, 62, 62); -- Players.yt4r5.PlayerGui.Red.Frame.ScreenGui.Prompt.Buttons.OkButton.TextButton AnimatedBorder["11"] = Instance.new("TextButton", AnimatedBorder["d"]); AnimatedBorder["11"]["ZIndex"] = 999; AnimatedBorder["11"]["BorderSizePixel"] = 0; AnimatedBorder["11"]["AutoButtonColor"] = false; AnimatedBorder["11"]["Size"] = UDim2.new(1, 0, 1, 0); AnimatedBorder["11"]["Text"] = [[]]; AnimatedBorder["11"]["BackgroundTransparency"] = 1; return AnimatedBorder["1"], require;
+    --[=[ d888b  db    db d888888b      .d888b.      db      db    db  .d8b. 88' Y8b 88    88   `88'        VP  `8D      88      88    88 d8' `8b 88      88    88    88            odD'      88      88    88 88ooo88 88  ooo 88    88    88          .88'        88      88    88 88~~~88 88. ~8~ 88b  d88   .88.        j88.         88booo. 88b  d88 88   88 Y888P  ~Y8888P' Y888888P      888888D      Y88888P ~Y8888P' YP   YP  CONVERTER ]=] -- Instances: 17 | Scripts: 0 | Modules: 0 local AnimatedBorder = {}; -- Players.yt4r5.PlayerGui.Orion.Frame.ScreenGui AnimatedBorder["1"] = Instance.new("ScreenGui", game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")); AnimatedBorder["1"]["ZIndexBehavior"] = Enum.ZIndexBehavior.Sibling; -- Players.yt4r5.PlayerGui.Orion.Frame.ScreenGui.Prompt AnimatedBorder["2"] = Instance.new("Frame", AnimatedBorder["1"]); AnimatedBorder["2"]["ZIndex"] = 999; AnimatedBorder["2"]["BackgroundColor3"] = Color3.fromRGB(32, 32, 32); AnimatedBorder["2"]["AnchorPoint"] = Vector2.new(0.5, 0.5); AnimatedBorder["2"]["BackgroundTransparency"] = 1; AnimatedBorder["2"]["Size"] = UDim2.new(0, 300, 0, 200); AnimatedBorder["2"]["BorderColor3"] = Color3.fromRGB(32, 32, 32); AnimatedBorder["2"]["Position"] = UDim2.new(0.5, 0, 0.5, 0); AnimatedBorder["2"]["Visible"] = false; AnimatedBorder["2"]["Name"] = [[Prompt]]; -- Players.yt4r5.PlayerGui.Orion.Frame.ScreenGui.Prompt.Title AnimatedBorder["3"] = Instance.new("TextLabel", AnimatedBorder["2"]); AnimatedBorder["3"]["ZIndex"] = 999; AnimatedBorder["3"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255); AnimatedBorder["3"]["TextTransparency"] = 1; AnimatedBorder["3"]["TextSize"] = 22; AnimatedBorder["3"]["TextColor3"] = Color3.fromRGB(255, 255, 255); AnimatedBorder["3"]["AnchorPoint"] = Vector2.new(0.5, 0); AnimatedBorder["3"]["Visible"] = false; AnimatedBorder["3"]["Size"] = UDim2.new(0, 200, 0, 50); AnimatedBorder["3"]["Text"] = [[This is a prompt title]]; AnimatedBorder["3"]["Name"] = [[Title]]; AnimatedBorder["3"]["Font"] = Enum.Font.GothamBold; AnimatedBorder["3"]["BackgroundTransparency"] = 1; AnimatedBorder["3"]["Position"] = UDim2.new(0.5, 0, 0, 0); -- Players.yt4r5.PlayerGui.Orion.Frame.ScreenGui.Prompt.UICorner AnimatedBorder["4"] = Instance.new("UICorner", AnimatedBorder["2"]); -- Players.yt4r5.PlayerGui.Orion.Frame.ScreenGui.Prompt.Description AnimatedBorder["5"] = Instance.new("TextLabel", AnimatedBorder["2"]); AnimatedBorder["5"]["TextWrapped"] = true; AnimatedBorder["5"]["ZIndex"] = 999; AnimatedBorder["5"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255); AnimatedBorder["5"]["TextTransparency"] = 1; AnimatedBorder["5"]["TextSize"] = 14; AnimatedBorder["5"]["TextColor3"] = Color3.fromRGB(172, 172, 172); AnimatedBorder["5"]["AnchorPoint"] = Vector2.new(0.5, 0.5); AnimatedBorder["5"]["Visible"] = false; AnimatedBorder["5"]["Size"] = UDim2.new(0, 280, 0, 150); AnimatedBorder["5"]["Text"] = [[Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque non felis facilisis, finibus massa et, facilisis lorem. Vivamus vel erat ut metus fermentum mattis aliquam id lacus. In quam metus,]]; AnimatedBorder["5"]["Name"] = [[Description]]; AnimatedBorder["5"]["Font"] = Enum.Font.GothamBold; AnimatedBorder["5"]["BackgroundTransparency"] = 1; AnimatedBorder["5"]["Position"] = UDim2.new(0.5, 0, 0.5, 0); -- Players.yt4r5.PlayerGui.Orion.Frame.ScreenGui.Prompt.Buttons AnimatedBorder["6"] = Instance.new("Frame", AnimatedBorder["2"]); AnimatedBorder["6"]["ZIndex"] = 1000; AnimatedBorder["6"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255); AnimatedBorder["6"]["AnchorPoint"] = Vector2.new(0.5, 0.5); AnimatedBorder["6"]["BackgroundTransparency"] = 1; AnimatedBorder["6"]["Size"] = UDim2.new(1, 0, 0, 100); AnimatedBorder["6"]["Position"] = UDim2.new(0.5, 0, 0.5, 30); AnimatedBorder["6"]["Name"] = [[Buttons]]; -- Players.yt4r5.PlayerGui.Orion.Frame.ScreenGui.Prompt.Buttons.OkButton AnimatedBorder["7"] = Instance.new("Frame", AnimatedBorder["6"]); AnimatedBorder["7"]["ZIndex"] = 1001; AnimatedBorder["7"]["BorderSizePixel"] = 0; AnimatedBorder["7"]["BackgroundColor3"] = Color3.fromRGB(34, 34, 34); AnimatedBorder["7"]["AnchorPoint"] = Vector2.new(0.5, 0.5); AnimatedBorder["7"]["BackgroundTransparency"] = 1; AnimatedBorder["7"]["Size"] = UDim2.new(0.20000000298023224, 0, 0, 33); AnimatedBorder["7"]["Position"] = UDim2.new(0.5, 0, 0.8999999761581421, -5); AnimatedBorder["7"]["Visible"] = false; AnimatedBorder["7"]["Name"] = [[OkButton]]; -- Players.yt4r5.PlayerGui.Orion.Frame.ScreenGui.Prompt.Buttons.OkButton.UICorner AnimatedBorder["8"] = Instance.new("UICorner", AnimatedBorder["7"]); AnimatedBorder["8"]["CornerRadius"] = UDim.new(0, 5); -- Players.yt4r5.PlayerGui.Orion.Frame.ScreenGui.Prompt.Buttons.OkButton.Content AnimatedBorder["9"] = Instance.new("TextLabel", AnimatedBorder["7"]); AnimatedBorder["9"]["ZIndex"] = 999; AnimatedBorder["9"]["RichText"] = true; AnimatedBorder["9"]["TextTransparency"] = 1; AnimatedBorder["9"]["TextSize"] = 15; AnimatedBorder["9"]["TextColor3"] = Color3.fromRGB(242, 242, 242); AnimatedBorder["9"]["Visible"] = false; AnimatedBorder["9"]["Size"] = UDim2.new(1, 0, 1, 0); AnimatedBorder["9"]["Text"] = [[Dismiss]]; AnimatedBorder["9"]["Name"] = [[Content]]; AnimatedBorder["9"]["Font"] = Enum.Font.GothamBold; AnimatedBorder["9"]["BackgroundTransparency"] = 1; -- Players.yt4r5.PlayerGui.Orion.Frame.ScreenGui.Prompt.Buttons.OkButton.UIStroke AnimatedBorder["a"] = Instance.new("UIStroke", AnimatedBorder["7"]); AnimatedBorder["a"]["Color"] = Color3.fromRGB(62, 62, 62); AnimatedBorder["a"]["Transparency"] = 1; -- Players.yt4r5.PlayerGui.Orion.Frame.ScreenGui.Prompt.Buttons.OkButton.TextButton AnimatedBorder["b"] = Instance.new("TextButton", AnimatedBorder["7"]); AnimatedBorder["b"]["ZIndex"] = 999; AnimatedBorder["b"]["BorderSizePixel"] = 0; AnimatedBorder["b"]["AutoButtonColor"] = false; AnimatedBorder["b"]["TextTransparency"] = 1; AnimatedBorder["b"]["Visible"] = false; AnimatedBorder["b"]["Size"] = UDim2.new(1, 0, 1, 0); AnimatedBorder["b"]["Text"] = [[]]; AnimatedBorder["b"]["BackgroundTransparency"] = 1; -- Players.yt4r5.PlayerGui.Orion.Frame.ScreenGui.Prompt.Buttons.UIListLayout AnimatedBorder["c"] = Instance.new("UIListLayout", AnimatedBorder["6"]); AnimatedBorder["c"]["VerticalAlignment"] = Enum.VerticalAlignment.Bottom; AnimatedBorder["c"]["FillDirection"] = Enum.FillDirection.Horizontal; AnimatedBorder["c"]["HorizontalAlignment"] = Enum.HorizontalAlignment.Center; AnimatedBorder["c"]["Padding"] = UDim.new(0, 6); AnimatedBorder["c"]["SortOrder"] = Enum.SortOrder.LayoutOrder; -- Players.yt4r5.PlayerGui.Orion.Frame.ScreenGui.Prompt.Buttons.OkButton AnimatedBorder["d"] = Instance.new("Frame", AnimatedBorder["6"]); AnimatedBorder["d"]["ZIndex"] = 1001; AnimatedBorder["d"]["BorderSizePixel"] = 0; AnimatedBorder["d"]["BackgroundColor3"] = Color3.fromRGB(34, 34, 34); AnimatedBorder["d"]["AnchorPoint"] = Vector2.new(0.5, 0.5); AnimatedBorder["d"]["BackgroundTransparency"] = 1; AnimatedBorder["d"]["Size"] = UDim2.new(0.20000000298023224, 0, 0, 33); AnimatedBorder["d"]["Position"] = UDim2.new(0.5, 0, 0.8999999761581421, -5); AnimatedBorder["d"]["Name"] = [[OkButton]]; -- Players.yt4r5.PlayerGui.Orion.Frame.ScreenGui.Prompt.Buttons.OkButton.UICorner AnimatedBorder["e"] = Instance.new("UICorner", AnimatedBorder["d"]); AnimatedBorder["e"]["CornerRadius"] = UDim.new(0, 5); -- Players.yt4r5.PlayerGui.Orion.Frame.ScreenGui.Prompt.Buttons.OkButton.Content AnimatedBorder["f"] = Instance.new("TextLabel", AnimatedBorder["d"]); AnimatedBorder["f"]["ZIndex"] = 999; AnimatedBorder["f"]["RichText"] = true; AnimatedBorder["f"]["TextSize"] = 15; AnimatedBorder["f"]["TextColor3"] = Color3.fromRGB(242, 242, 242); AnimatedBorder["f"]["Size"] = UDim2.new(1, 0, 1, 0); AnimatedBorder["f"]["Text"] = [[Ok]]; AnimatedBorder["f"]["Name"] = [[Content]]; AnimatedBorder["f"]["Font"] = Enum.Font.GothamBold; AnimatedBorder["f"]["BackgroundTransparency"] = 1; -- Players.yt4r5.PlayerGui.Orion.Frame.ScreenGui.Prompt.Buttons.OkButton.UIStroke AnimatedBorder["10"] = Instance.new("UIStroke", AnimatedBorder["d"]); AnimatedBorder["10"]["Color"] = Color3.fromRGB(62, 62, 62); -- Players.yt4r5.PlayerGui.Orion.Frame.ScreenGui.Prompt.Buttons.OkButton.TextButton AnimatedBorder["11"] = Instance.new("TextButton", AnimatedBorder["d"]); AnimatedBorder["11"]["ZIndex"] = 999; AnimatedBorder["11"]["BorderSizePixel"] = 0; AnimatedBorder["11"]["AutoButtonColor"] = false; AnimatedBorder["11"]["Size"] = UDim2.new(1, 0, 1, 0); AnimatedBorder["11"]["Text"] = [[]]; AnimatedBorder["11"]["BackgroundTransparency"] = 1; return AnimatedBorder["1"], require;
     
     local PromptShadow = Prompt["2"]
     local PromptBaseFrame = Prompt["3"]
@@ -1334,22 +1334,22 @@ function REDLIB:MakeWindow(WindowConfig)
                 }), "Second")
 
                 AddConnection(Click.MouseEnter, function()
-                    TweenService:Create(ButtonFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(REDLIB.Themes[REDLIB.SelectedTheme].Second.R * 255 + 3, REDLIB.Themes[REDLIB.SelectedTheme].Second.G * 255 + 3, REDLIB.Themes[REDLIB.SelectedTheme].Second.B * 255 + 3)}):Play()
+                    TweenService:Create(ButtonFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OrionLib.Themes[OrionLib.SelectedTheme].Second.R * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.G * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.B * 255 + 3)}):Play()
                 end)
 
                 AddConnection(Click.MouseLeave, function()
-                    TweenService:Create(ButtonFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = REDLIB.Themes[REDLIB.SelectedTheme].Second}):Play()
+                    TweenService:Create(ButtonFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = OrionLib.Themes[OrionLib.SelectedTheme].Second}):Play()
                 end)
 
                 AddConnection(Click.MouseButton1Up, function()
-                    TweenService:Create(ButtonFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(REDLIB.Themes[REDLIB.SelectedTheme].Second.R * 255 + 3, REDLIB.Themes[REDLIB.SelectedTheme].Second.G * 255 + 3, REDLIB.Themes[REDLIB.SelectedTheme].Second.B * 255 + 3)}):Play()
+                    TweenService:Create(ButtonFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OrionLib.Themes[OrionLib.SelectedTheme].Second.R * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.G * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.B * 255 + 3)}):Play()
                     spawn(function()
                         ButtonConfig.Callback()
                     end)
                 end)
 
                 AddConnection(Click.MouseButton1Down, function()
-                    TweenService:Create(ButtonFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(REDLIB.Themes[REDLIB.SelectedTheme].Second.R * 255 + 6, REDLIB.Themes[REDLIB.SelectedTheme].Second.G * 255 + 6, REDLIB.Themes[REDLIB.SelectedTheme].Second.B * 255 + 6)}):Play()
+                    TweenService:Create(ButtonFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OrionLib.Themes[OrionLib.SelectedTheme].Second.R * 255 + 6, OrionLib.Themes[OrionLib.SelectedTheme].Second.G * 255 + 6, OrionLib.Themes[OrionLib.SelectedTheme].Second.B * 255 + 6)}):Play()
                 end)
 
                 function Button:Set(ButtonText)
@@ -1363,7 +1363,7 @@ function REDLIB:MakeWindow(WindowConfig)
                 ToggleConfig.Name = ToggleConfig.Name or "Toggle"
                 ToggleConfig.Default = ToggleConfig.Default or false
                 ToggleConfig.Callback = ToggleConfig.Callback or function() end
-                ToggleConfig.Color = ToggleConfig.Color or REDLIB.Themes[REDLIB.SelectedTheme].Accent
+                ToggleConfig.Color = ToggleConfig.Color or OrionLib.Themes[OrionLib.SelectedTheme].Accent
                 ToggleConfig.Flag = ToggleConfig.Flag or nil
                 ToggleConfig.Save = ToggleConfig.Save or false
 
@@ -1410,8 +1410,8 @@ function REDLIB:MakeWindow(WindowConfig)
 
                 function Toggle:Set(Value)
                     Toggle.Value = Value
-                    TweenService:Create(ToggleBox, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Toggle.Value and ToggleConfig.Color or REDLIB.Themes[REDLIB.SelectedTheme].Main}):Play()
-                    TweenService:Create(ToggleBox.Stroke, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Color = Toggle.Value and ToggleConfig.Color or REDLIB.Themes.Default.Stroke}):Play()
+                    TweenService:Create(ToggleBox, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Toggle.Value and ToggleConfig.Color or OrionLib.Themes[OrionLib.SelectedTheme].Main}):Play()
+                    TweenService:Create(ToggleBox.Stroke, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Color = Toggle.Value and ToggleConfig.Color or OrionLib.Themes.Default.Stroke}):Play()
                     TweenService:Create(ToggleBox.Ico, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {ImageTransparency = Toggle.Value and 0 or 1, Size = Toggle.Value and UDim2.new(0, 20, 0, 20) or UDim2.new(0, 8, 0, 8)}):Play()
                     ToggleConfig.Callback(Toggle.Value)
                 end    
@@ -1419,25 +1419,25 @@ function REDLIB:MakeWindow(WindowConfig)
                 Toggle:Set(Toggle.Value)
 
                 AddConnection(Click.MouseEnter, function()
-                    TweenService:Create(ToggleFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(REDLIB.Themes[REDLIB.SelectedTheme].Second.R * 255 + 3, REDLIB.Themes[REDLIB.SelectedTheme].Second.G * 255 + 3, REDLIB.Themes[REDLIB.SelectedTheme].Second.B * 255 + 3)}):Play()
+                    TweenService:Create(ToggleFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OrionLib.Themes[OrionLib.SelectedTheme].Second.R * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.G * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.B * 255 + 3)}):Play()
                 end)
 
                 AddConnection(Click.MouseLeave, function()
-                    TweenService:Create(ToggleFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = REDLIB.Themes[REDLIB.SelectedTheme].Second}):Play()
+                    TweenService:Create(ToggleFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = OrionLib.Themes[OrionLib.SelectedTheme].Second}):Play()
                 end)
 
                 AddConnection(Click.MouseButton1Up, function()
-                    TweenService:Create(ToggleFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(REDLIB.Themes[REDLIB.SelectedTheme].Second.R * 255 + 3, REDLIB.Themes[REDLIB.SelectedTheme].Second.G * 255 + 3, REDLIB.Themes[REDLIB.SelectedTheme].Second.B * 255 + 3)}):Play()
+                    TweenService:Create(ToggleFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OrionLib.Themes[OrionLib.SelectedTheme].Second.R * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.G * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.B * 255 + 3)}):Play()
                     SaveCfg(game.GameId)
                     Toggle:Set(not Toggle.Value)
                 end)
 
                 AddConnection(Click.MouseButton1Down, function()
-                    TweenService:Create(ToggleFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(REDLIB.Themes[REDLIB.SelectedTheme].Second.R * 255 + 6, REDLIB.Themes[REDLIB.SelectedTheme].Second.G * 255 + 6, REDLIB.Themes[REDLIB.SelectedTheme].Second.B * 255 + 6)}):Play()
+                    TweenService:Create(ToggleFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OrionLib.Themes[OrionLib.SelectedTheme].Second.R * 255 + 6, OrionLib.Themes[OrionLib.SelectedTheme].Second.G * 255 + 6, OrionLib.Themes[OrionLib.SelectedTheme].Second.B * 255 + 6)}):Play()
                 end)
 
                 if ToggleConfig.Flag then
-                    REDLIB.Flags[ToggleConfig.Flag] = Toggle
+                    OrionLib.Flags[ToggleConfig.Flag] = Toggle
                 end 
                 return Toggle
             end  
@@ -1451,7 +1451,7 @@ function REDLIB:MakeWindow(WindowConfig)
                 SliderConfig.Default = SliderConfig.Default or 50
                 SliderConfig.Callback = SliderConfig.Callback or function() end
                 SliderConfig.ValueName = SliderConfig.ValueName or ""
-                SliderConfig.Color = SliderConfig.Color or REDLIB.Themes[REDLIB.SelectedTheme].Accent
+                SliderConfig.Color = SliderConfig.Color or OrionLib.Themes[OrionLib.SelectedTheme].Accent
                 SliderConfig.Flag = SliderConfig.Flag or nil
                 SliderConfig.Save = SliderConfig.Save or false
                 SliderConfig.OnUnToggled = SliderConfig.OnUnToggled or function() end
@@ -1459,7 +1459,7 @@ function REDLIB:MakeWindow(WindowConfig)
                 ToggleConfig.Name = ToggleConfig.Name or "Toggle"
                 ToggleConfig.Default = ToggleConfig.Default or false
                 ToggleConfig.Callback = ToggleConfig.Callback or function() end
-                ToggleConfig.Color = ToggleConfig.Color or REDLIB.Themes[REDLIB.SelectedTheme].Accent
+                ToggleConfig.Color = ToggleConfig.Color or OrionLib.Themes[OrionLib.SelectedTheme].Accent
                 ToggleConfig.Flag = ToggleConfig.Flag or nil
                 ToggleConfig.Save = ToggleConfig.Save or false
 
@@ -1540,7 +1540,7 @@ function REDLIB:MakeWindow(WindowConfig)
 
                 Slider:Set(Slider.Value)
                 if SliderConfig.Flag then               
-                    REDLIB.Flags[SliderConfig.Flag] = Slider
+                    OrionLib.Flags[SliderConfig.Flag] = Slider
                 end
                 
                 local Toggle = {Value = ToggleConfig.Default, Save = ToggleConfig.Save}
@@ -1586,8 +1586,8 @@ function REDLIB:MakeWindow(WindowConfig)
                 function Toggle:Set(Value)
                     Toggle.Value = Value
                     toggled = Value
-                    TweenService:Create(ToggleBox, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Toggle.Value and ToggleConfig.Color or REDLIB.Themes[REDLIB.SelectedTheme].Main}):Play()
-                    TweenService:Create(ToggleBox.Stroke, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Color = Toggle.Value and ToggleConfig.Color or REDLIB.Themes.Default.Stroke}):Play()
+                    TweenService:Create(ToggleBox, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Toggle.Value and ToggleConfig.Color or OrionLib.Themes[OrionLib.SelectedTheme].Main}):Play()
+                    TweenService:Create(ToggleBox.Stroke, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Color = Toggle.Value and ToggleConfig.Color or OrionLib.Themes.Default.Stroke}):Play()
                     TweenService:Create(ToggleBox.Ico, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {ImageTransparency = Toggle.Value and 0 or 1, Size = Toggle.Value and UDim2.new(0, 20, 0, 20) or UDim2.new(0, 8, 0, 8)}):Play()
                     ToggleConfig.Callback(Toggle.Value)
                     if not toggled then
@@ -1598,25 +1598,25 @@ function REDLIB:MakeWindow(WindowConfig)
                 Toggle:Set(Toggle.Value)
 
                 AddConnection(Click.MouseEnter, function()
-                    TweenService:Create(ToggleFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(REDLIB.Themes[REDLIB.SelectedTheme].Second.R * 255 + 3, REDLIB.Themes[REDLIB.SelectedTheme].Second.G * 255 + 3, REDLIB.Themes[REDLIB.SelectedTheme].Second.B * 255 + 3)}):Play()
+                    TweenService:Create(ToggleFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OrionLib.Themes[OrionLib.SelectedTheme].Second.R * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.G * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.B * 255 + 3)}):Play()
                 end)
 
                 AddConnection(Click.MouseLeave, function()
-                    TweenService:Create(ToggleFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = REDLIB.Themes[REDLIB.SelectedTheme].Second}):Play()
+                    TweenService:Create(ToggleFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = OrionLib.Themes[OrionLib.SelectedTheme].Second}):Play()
                 end)
 
                 AddConnection(Click.MouseButton1Up, function()
-                    TweenService:Create(ToggleFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(REDLIB.Themes[REDLIB.SelectedTheme].Second.R * 255 + 3, REDLIB.Themes[REDLIB.SelectedTheme].Second.G * 255 + 3, REDLIB.Themes[REDLIB.SelectedTheme].Second.B * 255 + 3)}):Play()
+                    TweenService:Create(ToggleFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OrionLib.Themes[OrionLib.SelectedTheme].Second.R * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.G * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.B * 255 + 3)}):Play()
                     SaveCfg(game.GameId)
                     Toggle:Set(not Toggle.Value)
                 end)
 
                 AddConnection(Click.MouseButton1Down, function()
-                    TweenService:Create(ToggleFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(REDLIB.Themes[REDLIB.SelectedTheme].Second.R * 255 + 6, REDLIB.Themes[REDLIB.SelectedTheme].Second.G * 255 + 6, REDLIB.Themes[REDLIB.SelectedTheme].Second.B * 255 + 6)}):Play()
+                    TweenService:Create(ToggleFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OrionLib.Themes[OrionLib.SelectedTheme].Second.R * 255 + 6, OrionLib.Themes[OrionLib.SelectedTheme].Second.G * 255 + 6, OrionLib.Themes[OrionLib.SelectedTheme].Second.B * 255 + 6)}):Play()
                 end)
 
                 if ToggleConfig.Flag then
-                    REDLIB.Flags[ToggleConfig.Flag] = Toggle
+                    OrionLib.Flags[ToggleConfig.Flag] = Toggle
                 end                 
                 return Slider
             end
@@ -1630,7 +1630,7 @@ function REDLIB:MakeWindow(WindowConfig)
                 SliderConfig.Default = SliderConfig.Default or 50
                 SliderConfig.Callback = SliderConfig.Callback or function() end
                 SliderConfig.ValueName = SliderConfig.ValueName or ""
-                SliderConfig.Color = SliderConfig.Color or REDLIB.Themes[REDLIB.SelectedTheme].Accent
+                SliderConfig.Color = SliderConfig.Color or OrionLib.Themes[OrionLib.SelectedTheme].Accent
                 SliderConfig.Flag = SliderConfig.Flag or nil
                 SliderConfig.Save = SliderConfig.Save or false
 
@@ -1712,7 +1712,7 @@ function REDLIB:MakeWindow(WindowConfig)
 
                 Slider:Set(Slider.Value)
                 if SliderConfig.Flag then               
-                    REDLIB.Flags[SliderConfig.Flag] = Slider
+                    OrionLib.Flags[SliderConfig.Flag] = Slider
                 end
                 return Slider
             end  
@@ -1867,7 +1867,7 @@ function REDLIB:MakeWindow(WindowConfig)
                 Dropdown:Refresh(Dropdown.Options, false)
                 Dropdown:Set(Dropdown.Value)
                 if DropdownConfig.Flag then             
-                    REDLIB.Flags[DropdownConfig.Flag] = Dropdown
+                    OrionLib.Flags[DropdownConfig.Flag] = Dropdown
                 end
                 return Dropdown
             end
@@ -1965,19 +1965,19 @@ function REDLIB:MakeWindow(WindowConfig)
                 end)
 
                 AddConnection(Click.MouseEnter, function()
-                    TweenService:Create(BindFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(REDLIB.Themes[REDLIB.SelectedTheme].Second.R * 255 + 3, REDLIB.Themes[REDLIB.SelectedTheme].Second.G * 255 + 3, REDLIB.Themes[REDLIB.SelectedTheme].Second.B * 255 + 3)}):Play()
+                    TweenService:Create(BindFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OrionLib.Themes[OrionLib.SelectedTheme].Second.R * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.G * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.B * 255 + 3)}):Play()
                 end)
 
                 AddConnection(Click.MouseLeave, function()
-                    TweenService:Create(BindFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = REDLIB.Themes[REDLIB.SelectedTheme].Second}):Play()
+                    TweenService:Create(BindFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = OrionLib.Themes[OrionLib.SelectedTheme].Second}):Play()
                 end)
 
                 AddConnection(Click.MouseButton1Up, function()
-                    TweenService:Create(BindFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(REDLIB.Themes[REDLIB.SelectedTheme].Second.R * 255 + 3, REDLIB.Themes[REDLIB.SelectedTheme].Second.G * 255 + 3, REDLIB.Themes[REDLIB.SelectedTheme].Second.B * 255 + 3)}):Play()
+                    TweenService:Create(BindFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OrionLib.Themes[OrionLib.SelectedTheme].Second.R * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.G * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.B * 255 + 3)}):Play()
                 end)
 
                 AddConnection(Click.MouseButton1Down, function()
-                    TweenService:Create(BindFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(REDLIB.Themes[REDLIB.SelectedTheme].Second.R * 255 + 6, REDLIB.Themes[REDLIB.SelectedTheme].Second.G * 255 + 6, REDLIB.Themes[REDLIB.SelectedTheme].Second.B * 255 + 6)}):Play()
+                    TweenService:Create(BindFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OrionLib.Themes[OrionLib.SelectedTheme].Second.R * 255 + 6, OrionLib.Themes[OrionLib.SelectedTheme].Second.G * 255 + 6, OrionLib.Themes[OrionLib.SelectedTheme].Second.B * 255 + 6)}):Play()
                 end)
 
                 function Bind:Set(Key)
@@ -1989,7 +1989,7 @@ function REDLIB:MakeWindow(WindowConfig)
 
                 Bind:Set(BindConfig.Default)
                 if BindConfig.Flag then             
-                    REDLIB.Flags[BindConfig.Flag] = Bind
+                    OrionLib.Flags[BindConfig.Flag] = Bind
                 end
                 return Bind
             end  
@@ -2056,20 +2056,20 @@ function REDLIB:MakeWindow(WindowConfig)
                 TextboxActual.Text = TextboxConfig.Default
 
                 AddConnection(Click.MouseEnter, function()
-                    TweenService:Create(TextboxFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(REDLIB.Themes[REDLIB.SelectedTheme].Second.R * 255 + 3, REDLIB.Themes[REDLIB.SelectedTheme].Second.G * 255 + 3, REDLIB.Themes[REDLIB.SelectedTheme].Second.B * 255 + 3)}):Play()
+                    TweenService:Create(TextboxFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OrionLib.Themes[OrionLib.SelectedTheme].Second.R * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.G * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.B * 255 + 3)}):Play()
                 end)
 
                 AddConnection(Click.MouseLeave, function()
-                    TweenService:Create(TextboxFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = REDLIB.Themes[REDLIB.SelectedTheme].Second}):Play()
+                    TweenService:Create(TextboxFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = OrionLib.Themes[OrionLib.SelectedTheme].Second}):Play()
                 end)
 
                 AddConnection(Click.MouseButton1Up, function()
-                    TweenService:Create(TextboxFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(REDLIB.Themes[REDLIB.SelectedTheme].Second.R * 255 + 3, REDLIB.Themes[REDLIB.SelectedTheme].Second.G * 255 + 3, REDLIB.Themes[REDLIB.SelectedTheme].Second.B * 255 + 3)}):Play()
+                    TweenService:Create(TextboxFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OrionLib.Themes[OrionLib.SelectedTheme].Second.R * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.G * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.B * 255 + 3)}):Play()
                     TextboxActual:CaptureFocus()
                 end)
 
                 AddConnection(Click.MouseButton1Down, function()
-                    TweenService:Create(TextboxFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(REDLIB.Themes[REDLIB.SelectedTheme].Second.R * 255 + 6, REDLIB.Themes[REDLIB.SelectedTheme].Second.G * 255 + 6, REDLIB.Themes[REDLIB.SelectedTheme].Second.B * 255 + 6)}):Play()
+                    TweenService:Create(TextboxFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OrionLib.Themes[OrionLib.SelectedTheme].Second.R * 255 + 6, OrionLib.Themes[OrionLib.SelectedTheme].Second.G * 255 + 6, OrionLib.Themes[OrionLib.SelectedTheme].Second.B * 255 + 6)}):Play()
                 end)
             end 
             function ElementFunction:AddColorpicker(ColorpickerConfig)
@@ -2253,7 +2253,7 @@ function REDLIB:MakeWindow(WindowConfig)
 
                 Colorpicker:Set(Colorpicker.Value)
                 if ColorpickerConfig.Flag then              
-                    REDLIB.Flags[ColorpickerConfig.Flag] = Colorpicker
+                    OrionLib.Flags[ColorpickerConfig.Flag] = Colorpicker
                 end
                 return Colorpicker
             end  
@@ -2324,12 +2324,12 @@ function REDLIB:MakeWindow(WindowConfig)
                     Size = UDim2.new(0, 56, 0, 56),
                     Position = UDim2.new(0, 84, 0, 110),
                 }), "Text"),
-                AddThemeObject(SetProps(MakeElement("Label", "Premium Features", 14), {
+                AddThemeObject(SetProps(MakeElement("Label", "Pidor", 14), {
                     Size = UDim2.new(1, -150, 0, 14),
                     Position = UDim2.new(0, 150, 0, 112),
                     Font = Enum.Font.GothamBold
                 }), "Text"),
-                AddThemeObject(SetProps(MakeElement("Label", "This part of the script is locked to Sirius Premium users. Purchase Premium in the Discord server (discord.gg/sirius)", 12), {
+                AddThemeObject(SetProps(MakeElement("Label", "This part of the script is locked to Sirius Premium users. Purchase Premium in the Discord server (discord.gg/no)", 12), {
                     Size = UDim2.new(1, -200, 0, 14),
                     Position = UDim2.new(0, 150, 0, 138),
                     TextWrapped = true,
@@ -2343,8 +2343,8 @@ function REDLIB:MakeWindow(WindowConfig)
     return TabFunction
 end   
 
-function REDLIB:Destroy()
-    RED:Destroy()
+function OrionLib:Destroy()
+    Orion:Destroy()
 end
 
-return REDLIB
+return OrionLib
