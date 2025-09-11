@@ -1,5 +1,7 @@
--- RedLib Library - Updated Version
+-- RedLibUPD Library
+-- Version 2.0
 -- by redpulse
+-- Features: Splash screen, draggable windows, mobile support, sliders, toggles
 
 local RedLib = {}
 RedLib.__index = RedLib
@@ -15,14 +17,16 @@ RedLib.DefaultConfig = {
     SliderWidth = 250,
     SliderHeight = 6,
     KnobSize = 20,
-    Title = "test window"
+    Title = "RedLib Window"
 }
 
 -- Утилиты
 function RedLib:CreateElement(className, properties)
     local element = Instance.new(className)
     for property, value in pairs(properties) do
-        element[property] = value
+        if element[property] ~= nil then
+            element[property] = value
+        end
     end
     return element
 end
@@ -37,7 +41,7 @@ function RedLib:IsMobile()
 end
 
 -- Создание splash screen
-function RedLib:CreateSplash()
+function RedLib:ShowSplash()
     local player = game:GetService("Players").LocalPlayer
     local TweenService = game:GetService("TweenService")
     
@@ -53,9 +57,110 @@ function RedLib:CreateSplash()
         BackgroundTransparency = 1,
         Text = "RedLibrary",
         TextColor3 = Color3.fromRGB(255, 0, 0),
-        Font = Enum    })
+        Font = Enum.Font.GothamBold,
+        TextSize = 24,
+        TextXAlignment = Enum.TextXAlignment.Center,
+        TextTransparency = 0,
+        Parent = splashGui
+    })
     
-    -- Контейнер элементов
+    -- Анимация пульсации
+    for i = 1, 3 do
+        local pulseOut = TweenService:Create(splashText, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            TextColor3 = Color3.fromRGB(150, 0, 0),
+            TextSize = 22
+        })
+        
+        local pulseIn = TweenService:Create(splashText, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            TextColor3 = Color3.fromRGB(255, 0, 0),
+            TextSize = 24
+        })
+        
+        pulseOut:Play()
+        pulseOut.Completed:Wait()
+        pulseIn:Play()
+        pulseIn.Completed:Wait()
+        task.wait(0.2)
+    end
+    
+    -- Исчезновение
+    local fadeOut = TweenService:Create(splashText, TweenInfo.new(1.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+        TextTransparency = 1
+    })
+    fadeOut:Play()
+    fadeOut.Completed:Wait()
+    
+    splashGui:Destroy()
+end
+
+-- Класс Window
+local Window = {}
+Window.__index = Window
+
+function RedLib:CreateWindow(config)
+    self:ShowSplash()
+    task.wait(0.5)
+    
+    config = config or {}
+    setmetatable(config, {__index = self.DefaultConfig})
+    
+    local window = setmetatable({
+        Config = config,
+        Elements = {},
+        Toggles = {},
+        Sliders = {},
+        IsVisible = true
+    }, Window)
+    
+    window:Initialize()
+    return window
+end
+
+function Window:Initialize()
+    local player = game:GetService("Players").LocalPlayer
+    
+    self.Gui = self:CreateElement("ScreenGui", {
+        Name = "RedLibWindow",
+        ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+        Parent = player.PlayerGui
+    })
+    
+    self.MainFrame = self:CreateElement("Frame", {
+        Size = self.Config.WindowSize,
+        Position = UDim2.new(0.5, -self.Config.WindowSize.Width.Offset/2, 0.5, -self.Config.WindowSize.Height.Offset/2),
+        BackgroundColor3 = self.Config.BackgroundColor,
+        BorderColor3 = self.Config.BorderColor,
+        BorderSizePixel = 2,
+        ClipsDescendants = true,
+        Active = true,
+        Draggable = true,
+        Selectable = true,
+        Parent = self.Gui
+    })
+    
+    self:CreateElement("UIGradient", {
+        Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 0, 0)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(20, 0, 0)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 0, 0))
+        }),
+        Rotation = 45,
+        Parent = self.MainFrame
+    })
+    
+    self.Title = self:CreateElement("TextLabel", {
+        Size = UDim2.new(1, 0, 0, 30),
+        Position = UDim2.new(0, 0, 0, 0),
+        BackgroundTransparency = 1,
+        Text = self.Config.Title,
+        TextColor3 = self.Config.AccentColor,
+        Font = Enum.Font.GothamBold,
+        TextSize = 16,
+        TextXAlignment = Enum.TextXAlignment.Center,
+        Active = true,
+        Parent = self.MainFrame
+    })
+    
     self.ContentFrame = self:CreateElement("Frame", {
         Size = UDim2.new(1, -40, 1, -60),
         Position = UDim2.new(0, 20, 0, 40),
@@ -63,7 +168,6 @@ function RedLib:CreateSplash()
         Parent = self.MainFrame
     })
     
-    -- Кнопка скрытия
     self.HideButton = self:CreateElement("TextButton", {
         Size = UDim2.new(0, 30, 0, 30),
         Position = UDim2.new(1, -35, 0, 5),
@@ -81,13 +185,12 @@ function RedLib:CreateSplash()
 end
 
 function Window:CreateElement(className, properties)
-    return RedPulsePROJECT:CreateElement(className, properties)
+    return RedLib:CreateElement(className, properties)
 end
 
 function Window:SetupAnimations()
     self.TweenService = game:GetService("TweenService")
     
-    -- Анимация свечения
     task.spawn(function()
         while self.MainFrame and self.MainFrame.Parent do
             local glowTween = self.TweenService:Create(self.MainFrame, TweenInfo.new(1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
@@ -106,12 +209,10 @@ function Window:SetupAnimations()
 end
 
 function Window:SetupEvents()
-    -- Скрытие/показание окна
     self.HideButton.MouseButton1Click:Connect(function()
         self:ToggleVisibility()
     end)
     
-    -- Мобильные жесты
     if self:IsMobile() then
         local UIS = game:GetService("UserInputService")
         local swipeStartPos = nil
@@ -161,7 +262,7 @@ end
 function Window:Show()
     self.IsVisible = true
     local tween = self.TweenService:Create(self.MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-        Position = self.Config.WindowPosition
+        Position = UDim2.new(0.5, -self.Config.WindowSize.Width.Offset/2, 0.5, -self.Config.WindowSize.Height.Offset/2)
     })
     tween:Play()
     self.HideButton.Text = "×"
@@ -194,7 +295,6 @@ function Window:AddSlider(name, defaultValue, minValue, maxValue, callback)
         Callback = callback
     }
     
-    -- Контейнер слайдера
     local sliderFrame = self:CreateElement("Frame", {
         Size = UDim2.new(1, 0, 0, 40),
         Position = UDim2.new(0, 0, 0, yPosition),
@@ -202,7 +302,6 @@ function Window:AddSlider(name, defaultValue, minValue, maxValue, callback)
         Parent = self.ContentFrame
     })
     
-    -- Метка
     local label = self:CreateElement("TextLabel", {
         Size = UDim2.new(0, 60, 1, 0),
         Position = UDim2.new(0, 0, 0, 0),
@@ -215,7 +314,6 @@ function Window:AddSlider(name, defaultValue, minValue, maxValue, callback)
         Parent = sliderFrame
     })
     
-    -- Трек
     local track = self:CreateElement("Frame", {
         Size = UDim2.new(1, -70, 0, self.Config.SliderHeight),
         Position = UDim2.new(0, 65, 0.5, -self.Config.SliderHeight/2),
@@ -225,7 +323,6 @@ function Window:AddSlider(name, defaultValue, minValue, maxValue, callback)
         Parent = sliderFrame
     })
     
-    -- Заливка
     local fill = self:CreateElement("Frame", {
         Size = UDim2.new(0, 0, 1, 0),
         BackgroundColor3 = self.Config.AccentColor,
@@ -233,7 +330,6 @@ function Window:AddSlider(name, defaultValue, minValue, maxValue, callback)
         Parent = track
     })
     
-    -- Кноб
     local knob = self:CreateElement("TextButton", {
         Size = UDim2.new(0, self.Config.KnobSize, 0, self.Config.KnobSize),
         Position = UDim2.new(0, -self.Config.KnobSize/2, 0.5, -self.Config.KnobSize/2),
@@ -246,7 +342,6 @@ function Window:AddSlider(name, defaultValue, minValue, maxValue, callback)
         Parent = sliderFrame
     })
     
-    -- Область для тача
     local touchArea = self:CreateElement("TextButton", {
         Size = UDim2.new(1, -70, 1, 0),
         Position = UDim2.new(0, 65, 0, 0),
@@ -256,7 +351,6 @@ function Window:AddSlider(name, defaultValue, minValue, maxValue, callback)
         Parent = sliderFrame
     })
     
-    -- Значение
     local valueLabel = self:CreateElement("TextLabel", {
         Size = UDim2.new(0, 40, 1, 0),
         Position = UDim2.new(1, -40, 0, 0),
@@ -304,14 +398,12 @@ function Window:SetupSliderMovement(slider, knob, touchArea, track, fill, valueL
             slider.Callback(value)
         end
         
-        -- Обновление GUI
         knob.Position = UDim2.new(percentage, -self.Config.KnobSize/2, 0.5, -self.Config.KnobSize/2)
         fill.Size = UDim2.new(percentage, 0, 1, 0)
         knob.Rotation = percentage * 360 - 180
         valueLabel.Text = tostring(value)
     end
 
-    -- Мышь
     knob.MouseButton1Down:Connect(function()
         local connection
         connection = game:GetService("RunService").Heartbeat:Connect(function()
@@ -323,7 +415,6 @@ function Window:SetupSliderMovement(slider, knob, touchArea, track, fill, valueL
         end)
     end)
 
-    -- Тач-устройства
     if self:IsMobile() then
         touchArea.TouchTap:Connect(function(touchPositions)
             if #touchPositions > 0 then
@@ -333,7 +424,6 @@ function Window:SetupSliderMovement(slider, knob, touchArea, track, fill, valueL
         end)
     end
     
-    -- Обработка отпускания
     local function releaseInput()
         mouseletgo = true
         task.wait(0.1)
@@ -347,8 +437,25 @@ function Window:SetupSliderMovement(slider, knob, touchArea, track, fill, valueL
 end
 
 function Window:IsMobile()
-    return RedPulsePROJECT:IsMobile()
+    return RedLib:IsMobile()
 end
 
--- Экспорт библиотеки
-return RedPulsePROJECT
+function Window:AddButton(name, callback)
+    local button = self:CreateElement("TextButton", {
+        Size = UDim2.new(1, 0, 0, 30),
+        Position = UDim2.new(0, 0, 0, #self.Elements * 40),
+        BackgroundColor3 = self.Config.AccentColor,
+        TextColor3 = Color3.fromRGB(0, 0, 0),
+        Font = Enum.Font.GothamBold,
+        Text = name,
+        TextSize = 12,
+        BorderSizePixel = 0,
+        Parent = self.ContentFrame
+    })
+    
+    button.MouseButton1Click:Connect(callback)
+    table.insert(self.Elements, button)
+    return button
+end
+
+return RedLib
