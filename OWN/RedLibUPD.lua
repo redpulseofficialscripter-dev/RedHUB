@@ -1,25 +1,21 @@
--- RedLib Ultimate Edition
--- Version 3.0
+-- RedLibUPD Fixed Version
 -- by redpulse
--- Полная библиотека с реалистичными анимациями и продвинутым GUI
 
 local RedLib = {}
 RedLib.__index = RedLib
 
 -- Конфигурация по умолчанию
 RedLib.DefaultConfig = {
-    WindowSize = UDim2.new(0, 400, 0, 300),
-    WindowPosition = UDim2.new(0.5, -200, 0.5, -150),
-    BackgroundColor = Color3.fromRGB(10, 10, 10),
+    WindowSize = UDim2.new(0, 350, 0, 250),
+    WindowPosition = UDim2.new(0.3, 0, 0.3, 0),
+    BackgroundColor = Color3.fromRGB(15, 15, 15),
     BorderColor = Color3.fromRGB(255, 0, 0),
     TextColor = Color3.fromRGB(255, 100, 100),
     AccentColor = Color3.fromRGB(255, 0, 0),
-    SecondaryColor = Color3.fromRGB(150, 0, 0),
-    SliderWidth = 280,
+    SliderWidth = 250,
     SliderHeight = 6,
-    KnobSize = 18,
-    Title = "RedLib Panel",
-    AnimationDuration = 0.8
+    KnobSize = 20,
+    Title = "RedLib Window"
 }
 
 -- Утилиты
@@ -42,11 +38,7 @@ function RedLib:IsMobile()
     return game:GetService("UserInputService").TouchEnabled
 end
 
-function RedLib:EasingStyle()
-    return Enum.EasingStyle.Quint
-end
-
--- Реалистичная анимация splash screen
+-- Создание splash screen
 function RedLib:ShowSplash()
     local player = game:GetService("Players").LocalPlayer
     local TweenService = game:GetService("TweenService")
@@ -57,106 +49,44 @@ function RedLib:ShowSplash()
         Parent = player.PlayerGui
     })
     
-    -- Фон с затемнением
-    local background = self:CreateElement("Frame", {
-        Size = UDim2.new(1, 0, 1, 0),
-        BackgroundColor3 = Color3.fromRGB(0, 0, 0),
-        BackgroundTransparency = 0.7,
-        BorderSizePixel = 0,
-        Parent = splashGui
-    })
-    
-    -- Основной текст
     local splashText = self:CreateElement("TextLabel", {
-        Size = UDim2.new(0, 300, 0, 60),
-        Position = UDim2.new(0.5, -150, 0.5, -30),
+        Size = UDim2.new(0, 200, 0, 50),
+        Position = UDim2.new(0.5, -100, 0.5, -25),
         BackgroundTransparency = 1,
-        Text = "REDLIBRARY",
+        Text = "RedLibrary",
         TextColor3 = Color3.fromRGB(255, 0, 0),
-        Font = Enum.Font.GothamBlack,
-        TextSize = 32,
+        Font = Enum.Font.GothamBold,
+        TextSize = 24,
         TextXAlignment = Enum.TextXAlignment.Center,
-        TextTransparency = 1,
-        ZIndex = 2,
+        TextTransparency = 0,
         Parent = splashGui
     })
     
-    -- Свечение текста
-    local textGlow = self:CreateElement("UIStroke", {
-        Color = Color3.fromRGB(255, 50, 50),
-        Thickness = 3,
-        Transparency = 1,
-        Parent = splashText
-    })
-    
-    -- Анимация появления
-    local appearTween = TweenService:Create(splashText, TweenInfo.new(1.2, self:EasingStyle(), Enum.EasingDirection.Out), {
-        TextTransparency = 0,
-        Position = UDim2.new(0.5, -150, 0.45, -30)
-    })
-    
-    local glowAppear = TweenService:Create(textGlow, TweenInfo.new(1.2, self:EasingStyle(), Enum.EasingDirection.Out), {
-        Transparency = 0
-    })
-    
-    appearTween:Play()
-    glowAppear:Play()
-    appearTween.Completed:Wait()
-    
-    -- Интенсивная пульсация
-    for i = 1, 4 do
-        local pulseOut = TweenService:Create(splashText, TweenInfo.new(0.4, self:EasingStyle(), Enum.EasingDirection.Out), {
-            TextColor3 = Color3.fromRGB(200, 0, 0),
-            TextSize = 30,
-            Position = UDim2.new(0.5, -150, 0.44, -30)
+    -- Анимация пульсации
+    for i = 1, 3 do
+        local pulseOut = TweenService:Create(splashText, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            TextColor3 = Color3.fromRGB(150, 0, 0),
+            TextSize = 22
         })
         
-        local glowPulseOut = TweenService:Create(textGlow, TweenInfo.new(0.4, self:EasingStyle(), Enum.EasingDirection.Out), {
-            Color = Color3.fromRGB(200, 30, 30),
-            Thickness = 4
-        })
-        
-        local pulseIn = TweenService:Create(splashText, TweenInfo.new(0.6, self:EasingStyle(), Enum.EasingDirection.Out), {
+        local pulseIn = TweenService:Create(splashText, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
             TextColor3 = Color3.fromRGB(255, 0, 0),
-            TextSize = 32,
-            Position = UDim2.new(0.5, -150, 0.45, -30)
-        })
-        
-        local glowPulseIn = TweenService:Create(textGlow, TweenInfo.new(0.6, self:EasingStyle(), Enum.EasingDirection.Out), {
-            Color = Color3.fromRGB(255, 50, 50),
-            Thickness = 3
+            TextSize = 24
         })
         
         pulseOut:Play()
-        glowPulseOut:Play()
         pulseOut.Completed:Wait()
         pulseIn:Play()
-        glowPulseIn:Play()
         pulseIn.Completed:Wait()
-        
-        if i < 4 then
-            task.wait(0.3)
-        end
+        task.wait(0.2)
     end
     
-    -- Реалистичное исчезновение
-    local fadeOutText = TweenService:Create(splashText, TweenInfo.new(1.5, self:EasingStyle(), Enum.EasingDirection.Out), {
-        TextTransparency = 1,
-        Position = UDim2.new(0.5, -150, 0.4, -30)
+    -- Исчезновение
+    local fadeOut = TweenService:Create(splashText, TweenInfo.new(1.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+        TextTransparency = 1
     })
-    
-    local fadeOutGlow = TweenService:Create(textGlow, TweenInfo.new(1.5, self:EasingStyle(), Enum.EasingDirection.Out), {
-        Transparency = 1
-    })
-    
-    local fadeBackground = TweenService:Create(background, TweenInfo.new(1.5, self:EasingStyle(), Enum.EasingDirection.Out), {
-        BackgroundTransparency = 1
-    })
-    
-    fadeOutText:Play()
-    fadeOutGlow:Play()
-    fadeBackground:Play()
-    fadeOutText.Completed:Wait()
+    fadeOut:Play()
+    fadeOut.Completed:Wait()
     
     splashGui:Destroy()
 end
@@ -165,9 +95,10 @@ end
 local Window = {}
 Window.__index = Window
 
-function RedLib:CreateWindow(config)
+-- ФИКС: Убрана рекурсия - переименована основная функция
+function RedLib:CreateWindowInstance(config)
     self:ShowSplash()
-    task.wait(0.3)
+    task.wait(0.5)
     
     config = config or {}
     setmetatable(config, {__index = self.DefaultConfig})
@@ -177,30 +108,30 @@ function RedLib:CreateWindow(config)
         Elements = {},
         Toggles = {},
         Sliders = {},
-        Buttons = {},
-        IsVisible = true,
-        IsMinimized = false
+        IsVisible = true
     }, Window)
     
     window:Initialize()
     return window
 end
 
+-- Публичный метод для пользователя
+function RedLib:CreateWindow(config)
+    return self:CreateWindowInstance(config)
+end
+
 function Window:Initialize()
     local player = game:GetService("Players").LocalPlayer
-    local TweenService = game:GetService("TweenService")
     
-    -- Основной GUI
     self.Gui = self:CreateElement("ScreenGui", {
         Name = "RedLibWindow",
         ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
         Parent = player.PlayerGui
     })
     
-    -- Контейнер окна
     self.MainFrame = self:CreateElement("Frame", {
-        Size = UDim2.new(0, 0, 0, 0),
-        Position = UDim2.new(0.5, 0, 0.5, 0),
+        Size = self.Config.WindowSize,
+        Position = UDim2.new(0.5, -self.Config.WindowSize.Width.Offset/2, 0.5, -self.Config.WindowSize.Height.Offset/2),
         BackgroundColor3 = self.Config.BackgroundColor,
         BorderColor3 = self.Config.BorderColor,
         BorderSizePixel = 2,
@@ -211,108 +142,47 @@ function Window:Initialize()
         Parent = self.Gui
     })
     
-    -- Градиентный фон с бликами
-    local mainGradient = self:CreateElement("UIGradient", {
+    self:CreateElement("UIGradient", {
         Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 0, 0)),
-            ColorSequenceKeypoint.new(0.3, Color3.fromRGB(10, 0, 0)),
-            ColorSequenceKeypoint.new(0.7, Color3.fromRGB(10, 0, 0)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 0, 0))
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 0, 0)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(20, 0, 0)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 0, 0))
         }),
         Rotation = 45,
         Parent = self.MainFrame
     })
     
-    -- Блик на фоне
-    local shineEffect = self:CreateElement("Frame", {
-        Size = UDim2.new(1, 0, 0, 20),
-        Position = UDim2.new(0, 0, 0, 0),
-        BackgroundColor3 = Color3.fromRGB(255, 50, 50),
-        BackgroundTransparency = 0.9,
-        BorderSizePixel = 0,
-        Parent = self.MainFrame
-    })
-    
-    -- Анимация блика
-    spawn(function()
-        while self.MainFrame and self.MainFrame.Parent do
-            local moveShine = TweenService:Create(shineEffect, TweenInfo.new(2, self:EasingStyle(), Enum.EasingDirection.InOut), {
-                Position = UDim2.new(0, 0, 1, -20)
-            })
-            moveShine:Play()
-            moveShine.Completed:Wait()
-            
-            local moveBack = TweenService:Create(shineEffect, TweenInfo.new(2, self:EasingStyle(), Enum.EasingDirection.InOut), {
-                Position = UDim2.new(0, 0, 0, 0)
-            })
-            moveBack:Play()
-            moveBack.Completed:Wait()
-        end
-    end)
-    
-    -- Заголовок окна
-    self.TitleBar = self:CreateElement("Frame", {
-        Size = UDim2.new(1, 0, 0, 30),
-        BackgroundColor3 = Color3.fromRGB(20, 20, 20),
-        BorderSizePixel = 0,
-        Parent = self.MainFrame
-    })
-    
-    -- Текст заголовка
     self.Title = self:CreateElement("TextLabel", {
-        Size = UDim2.new(1, -60, 1, 0),
-        Position = UDim2.new(0, 10, 0, 0),
+        Size = UDim2.new(1, 0, 0, 30),
+        Position = UDim2.new(0, 0, 0, 0),
         BackgroundTransparency = 1,
         Text = self.Config.Title,
         TextColor3 = self.Config.AccentColor,
         Font = Enum.Font.GothamBold,
-        TextSize = 14,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Parent = self.TitleBar
+        TextSize = 16,
+        TextXAlignment = Enum.TextXAlignment.Center,
+        Active = true,
+        Parent = self.MainFrame
     })
     
-    -- Кнопка закрытия
-    self.CloseButton = self:CreateElement("TextButton", {
-        Size = UDim2.new(0, 30, 0, 30),
-        Position = UDim2.new(1, -30, 0, 0),
-        BackgroundColor3 = Color3.fromRGB(255, 50, 50),
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        Font = Enum.Font.GothamBold,
-        Text = "×",
-        TextSize = 18,
-        BorderSizePixel = 0,
-        Parent = self.TitleBar
-    })
-    
-    -- Кнопка сворачивания
-    self.MinimizeButton = self:CreateElement("TextButton", {
-        Size = UDim2.new(0, 30, 0, 30),
-        Position = UDim2.new(1, -60, 0, 0),
-        BackgroundColor3 = Color3.fromRGB(100, 100, 100),
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        Font = Enum.Font.GothamBold,
-        Text = "_",
-        TextSize = 18,
-        BorderSizePixel = 0,
-        Parent = self.TitleBar
-    })
-    
-    -- Контейнер контента
     self.ContentFrame = self:CreateElement("Frame", {
-        Size = UDim2.new(1, -20, 1, -50),
-        Position = UDim2.new(0, 10, 0, 40),
+        Size = UDim2.new(1, -40, 1, -60),
+        Position = UDim2.new(0, 20, 0, 40),
         BackgroundTransparency = 1,
         Parent = self.MainFrame
     })
     
-    -- Анимация появления окна
-    local sizeTween = TweenService:Create(self.MainFrame, TweenInfo.new(self.Config.AnimationDuration, self:EasingStyle(), Enum.EasingDirection.Out), {
-        Size = self.Config.WindowSize,
-        Position = self.Config.WindowPosition
+    self.HideButton = self:CreateElement("TextButton", {
+        Size = UDim2.new(0, 30, 0, 30),
+        Position = UDim2.new(1, -35, 0, 5),
+        BackgroundColor3 = self.Config.AccentColor,
+        TextColor3 = Color3.fromRGB(0, 0, 0),
+        Font = Enum.Font.GothamBold,
+        Text = "×",
+        TextSize = 16,
+        BorderSizePixel = 0,
+        Parent = self.MainFrame
     })
-    
-    sizeTween:Play()
-    sizeTween.Completed:Wait()
     
     self:SetupAnimations()
     self:SetupEvents()
@@ -325,115 +195,83 @@ end
 function Window:SetupAnimations()
     self.TweenService = game:GetService("TweenService")
     
-    -- Пульсация границы окна
-    spawn(function()
+    task.spawn(function()
         while self.MainFrame and self.MainFrame.Parent do
-            local glowTween = self.TweenService:Create(self.MainFrame, TweenInfo.new(1.5, self:EasingStyle(), Enum.EasingDirection.InOut), {
-                BorderColor3 = self.Config.SecondaryColor
+            local glowTween = self.TweenService:Create(self.MainFrame, TweenInfo.new(1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+                BorderColor3 = Color3.fromRGB(150, 0, 0)
             })
             glowTween:Play()
             task.wait(1.5)
             
-            local glowTween2 = self.TweenService:Create(self.MainFrame, TweenInfo.new(1.5, self:EasingStyle(), Enum.EasingDirection.InOut), {
+            local glowTween2 = self.TweenService:Create(self.MainFrame, TweenInfo.new(1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
                 BorderColor3 = self.Config.BorderColor
             })
             glowTween2:Play()
             task.wait(1.5)
         end
     end)
-    
-    -- Анимация кнопок
-    spawn(function()
-        while self.MainFrame and self.MainFrame.Parent do
-            local buttonPulse = self.TweenService:Create(self.CloseButton, TweenInfo.new(0.8, self:EasingStyle(), Enum.EasingDirection.Out), {
-                BackgroundColor3 = Color3.fromRGB(255, 30, 30)
-            })
-            buttonPulse:Play()
-            task.wait(0.8)
-            
-            local buttonPulse2 = self.TweenService:Create(self.CloseButton, TweenInfo.new(0.8, self:EasingStyle(), Enum.EasingDirection.Out), {
-                BackgroundColor3 = Color3.fromRGB(255, 50, 50)
-            })
-            buttonPulse2:Play()
-            task.wait(0.8)
-        end
-    end)
 end
 
 function Window:SetupEvents()
-    -- Кнопка закрытия
-    self.CloseButton.MouseButton1Click:Connect(function()
-        self:Close()
+    self.HideButton.MouseButton1Click:Connect(function()
+        self:ToggleVisibility()
     end)
     
-    -- Кнопка сворачивания
-    self.MinimizeButton.MouseButton1Click:Connect(function()
-        self:ToggleMinimize()
-    end)
-    
-    -- Ховер эффекты для кнопок
-    self.CloseButton.MouseEnter:Connect(function()
-        self.TweenService:Create(self.CloseButton, TweenInfo.new(0.2, self:EasingStyle()), {
-            BackgroundColor3 = Color3.fromRGB(255, 20, 20)
-        }):Play()
-    end)
-    
-    self.CloseButton.MouseLeave:Connect(function()
-        self.TweenService:Create(self.CloseButton, TweenInfo.new(0.2, self:EasingStyle()), {
-            BackgroundColor3 = Color3.fromRGB(255, 50, 50)
-        }):Play()
-    end)
-    
-    self.MinimizeButton.MouseEnter:Connect(function()
-        self.TweenService:Create(self.MinimizeButton, TweenInfo.new(0.2, self:EasingStyle()), {
-            BackgroundColor3 = Color3.fromRGB(80, 80, 80)
-        }):Play()
-    end)
-    
-    self.MinimizeButton.MouseLeave:Connect(function()
-        self.TweenService:Create(self.MinimizeButton, TweenInfo.new(0.2, self:EasingStyle()), {
-            BackgroundColor3 = Color3.fromRGB(100, 100, 100)
-        }):Play()
-    end)
-end
-
-function Window:Close()
-    local tween = self.TweenService:Create(self.MainFrame, TweenInfo.new(0.5, self:EasingStyle(), Enum.EasingDirection.Out), {
-        Size = UDim2.new(0, 0, 0, 0),
-        Position = UDim2.new(0.5, 0, 0.5, 0)
-    })
-    tween:Play()
-    tween.Completed:Wait()
-    self.Gui:Destroy()
-end
-
-function Window:ToggleMinimize()
-    if self.IsMinimized then
-        self:Maximize()
-    else
-        self:Minimize()
+    if self:IsMobile() then
+        local UIS = game:GetService("UserInputService")
+        local swipeStartPos = nil
+        
+        UIS.TouchStarted:Connect(function(input, processed)
+            if not processed and self.MainFrame:IsDescendantOf(game) then
+                swipeStartPos = input.Position
+            end
+        end)
+        
+        UIS.TouchEnded:Connect(function(input, processed)
+            if swipeStartPos and not processed then
+                local swipeEndPos = input.Position
+                local swipeDistance = (swipeEndPos - swipeStartPos).X
+                
+                if math.abs(swipeDistance) > 50 then
+                    if swipeDistance > 0 and not self.IsVisible then
+                        self:Show()
+                    elseif swipeDistance < 0 and self.IsVisible then
+                        self:Hide()
+                    end
+                end
+                swipeStartPos = nil
+            end
+        end)
     end
 end
 
-function Window:Minimize()
-    self.IsMinimized = true
-    local tween = self.TweenService:Create(self.MainFrame, TweenInfo.new(0.3, self:EasingStyle(), Enum.EasingDirection.Out), {
-        Size = UDim2.new(0, self.Config.WindowSize.Width.Offset, 0, 30)
-    })
-    tween:Play()
-    self.MinimizeButton.Text = "+"
+function Window:ToggleVisibility()
+    if self.IsVisible then
+        self:Hide()
+    else
+        self:Show()
+    end
 end
 
-function Window:Maximize()
-    self.IsMinimized = false
-    local tween = self.TweenService:Create(self.MainFrame, TweenInfo.new(0.3, self:EasingStyle(), Enum.EasingDirection.Out), {
-        Size = self.Config.WindowSize
+function Window:Hide()
+    self.IsVisible = false
+    local targetPosition = UDim2.new(-0.3, 0, self.MainFrame.Position.Y.Scale, self.MainFrame.Position.Y.Offset)
+    local tween = self.TweenService:Create(self.MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+        Position = targetPosition
     })
     tween:Play()
-    self.MinimizeButton.Text = "_"
+    self.HideButton.Text = "○"
 end
 
--- Методы для создания элементов
+function Window:Show()
+    self.IsVisible = true
+    local tween = self.TweenService:Create(self.MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+        Position = UDim2.new(0.5, -self.Config.WindowSize.Width.Offset/2, 0.5, -self.Config.WindowSize.Height.Offset/2)
+    })
+    tween:Play()
+    self.HideButton.Text = "×"
+end
+
 function Window:AddLabel(text, position)
     local label = self:CreateElement("TextLabel", {
         Size = UDim2.new(1, 0, 0, 20),
@@ -469,7 +307,7 @@ function Window:AddSlider(name, defaultValue, minValue, maxValue, callback)
     })
     
     local label = self:CreateElement("TextLabel", {
-        Size = UDim2.new(0, 80, 1, 0),
+        Size = UDim2.new(0, 60, 1, 0),
         Position = UDim2.new(0, 0, 0, 0),
         BackgroundTransparency = 1,
         Text = name,
@@ -481,8 +319,8 @@ function Window:AddSlider(name, defaultValue, minValue, maxValue, callback)
     })
     
     local track = self:CreateElement("Frame", {
-        Size = UDim2.new(1, -90, 0, self.Config.SliderHeight),
-        Position = UDim2.new(0, 85, 0.5, -self.Config.SliderHeight/2),
+        Size = UDim2.new(1, -70, 0, self.Config.SliderHeight),
+        Position = UDim2.new(0, 65, 0.5, -self.Config.SliderHeight/2),
         BackgroundColor3 = Color3.fromRGB(50, 50, 50),
         BorderSizePixel = 0,
         ClipsDescendants = true,
@@ -508,6 +346,15 @@ function Window:AddSlider(name, defaultValue, minValue, maxValue, callback)
         Parent = sliderFrame
     })
     
+    local touchArea = self:CreateElement("TextButton", {
+        Size = UDim2.new(1, -70, 1, 0),
+        Position = UDim2.new(0, 65, 0, 0),
+        BackgroundTransparency = 1,
+        Text = "",
+        ZIndex = 3,
+        Parent = sliderFrame
+    })
+    
     local valueLabel = self:CreateElement("TextLabel", {
         Size = UDim2.new(0, 40, 1, 0),
         Position = UDim2.new(1, -40, 0, 0),
@@ -520,7 +367,15 @@ function Window:AddSlider(name, defaultValue, minValue, maxValue, callback)
         Parent = sliderFrame
     })
     
-    self:SetupSliderMovement(slider, knob, track, fill, valueLabel)
+    self:SetupSliderMovement(slider, knob, touchArea, track, fill, valueLabel)
+    
+    slider.Gui = {
+        Frame = sliderFrame,
+        Knob = knob,
+        Track = track,
+        Fill = fill,
+        ValueLabel = valueLabel
+    }
     
     table.insert(self.Sliders, slider)
     table.insert(self.Elements, sliderFrame)
@@ -528,7 +383,7 @@ function Window:AddSlider(name, defaultValue, minValue, maxValue, callback)
     return slider
 end
 
-function Window:SetupSliderMovement(slider, knob, track, fill, valueLabel)
+function Window:SetupSliderMovement(slider, knob, touchArea, track, fill, valueLabel)
     local mouseletgo = false
     
     local function updateSlider(input)
@@ -549,6 +404,7 @@ function Window:SetupSliderMovement(slider, knob, track, fill, valueLabel)
         
         knob.Position = UDim2.new(percentage, -self.Config.KnobSize/2, 0.5, -self.Config.KnobSize/2)
         fill.Size = UDim2.new(percentage, 0, 1, 0)
+        knob.Rotation = percentage * 360 - 180
         valueLabel.Text = tostring(value)
     end
 
@@ -563,11 +419,29 @@ function Window:SetupSliderMovement(slider, knob, track, fill, valueLabel)
         end)
     end)
 
-    knob.MouseButton1Up:Connect(function()
+    if self:IsMobile() then
+        touchArea.TouchTap:Connect(function(touchPositions)
+            if #touchPositions > 0 then
+                local fakeInput = {Position = Vector2.new(touchPositions[1].X, touchPositions[1].Y)}
+                updateSlider(fakeInput)
+            end
+        end)
+    end
+    
+    local function releaseInput()
         mouseletgo = true
         task.wait(0.1)
         mouseletgo = false
-    end)
+    end
+    
+    knob.MouseButton1Up:Connect(releaseInput)
+    if self:IsMobile() then
+        game:GetService("UserInputService").TouchEnded:Connect(releaseInput)
+    end
+end
+
+function Window:IsMobile()
+    return RedLib:IsMobile()
 end
 
 function Window:AddButton(name, callback)
@@ -583,141 +457,9 @@ function Window:AddButton(name, callback)
         Parent = self.ContentFrame
     })
     
-    -- Анимация кнопки
-    button.MouseEnter:Connect(function()
-        self.TweenService:Create(button, TweenInfo.new(0.2, self:EasingStyle()), {
-            BackgroundColor3 = self.Config.SecondaryColor
-        }):Play()
-    end)
-    
-    button.MouseLeave:Connect(function()
-        self.TweenService:Create(button, TweenInfo.new(0.2, self:EasingStyle()), {
-            BackgroundColor3 = self.Config.AccentColor
-        }):Play()
-    end)
-    
     button.MouseButton1Click:Connect(callback)
-    table.insert(self.Buttons, button)
     table.insert(self.Elements, button)
-    
     return button
-end
-
-function Window:AddToggle(name, defaultValue, callback)
-    local toggle = {
-        Name = name,
-        Value = defaultValue or false,
-        Callback = callback
-    }
-    
-    local toggleFrame = self:CreateElement("Frame", {
-        Size = UDim2.new(1, 0, 0, 30),
-        Position = UDim2.new(0, 0, 0, #self.Elements * 40),
-        BackgroundTransparency = 1,
-        Parent = self.ContentFrame
-    })
-    
-    local label = self:CreateElement("TextLabel", {
-        Size = UDim2.new(0, 120, 1, 0),
-        Position = UDim2.new(0, 0, 0, 0),
-        BackgroundTransparency = 1,
-        Text = name,
-        TextColor3 = self.Config.TextColor,
-        Font = Enum.Font.Gotham,
-        TextSize = 12,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Parent = toggleFrame
-    })
-    
-    local toggleButton = self:CreateElement("TextButton", {
-        Size = UDim2.new(0, 50, 0, 20),
-        Position = UDim2.new(1, -50, 0.5, -10),
-        BackgroundColor3 = defaultValue and self.Config.AccentColor or Color3.fromRGB(50, 50, 50),
-        Text = "",
-        BorderSizePixel = 0,
-        Parent = toggleFrame
-    })
-    
-    local toggleKnob = self:CreateElement("Frame", {
-        Size = UDim2.new(0, 16, 0, 16),
-        Position = UDim2.new(defaultValue and 1 or 0, defaultValue and -18 or 2, 0.5, -8),
-        BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-        BorderSizePixel = 0,
-        Parent = toggleButton
-    })
-    
-    toggleButton.MouseButton1Click:Connect(function()
-        toggle.Value = not toggle.Value
-        if toggle.Callback then
-            toggle.Callback(toggle.Value)
-        end
-        
-        local newPosition = toggle.Value and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
-        local newColor = toggle.Value and self.Config.AccentColor or Color3.fromRGB(50, 50, 50)
-        
-        self.TweenService:Create(toggleKnob, TweenInfo.new(0.2, self:EasingStyle()), {
-            Position = newPosition
-        }):Play()
-        
-        self.TweenService:Create(toggleButton, TweenInfo.new(0.2, self:EasingStyle()), {
-            BackgroundColor3 = newColor
-        }):Play()
-    end)
-    
-    table.insert(self.Toggles, toggle)
-    table.insert(self.Elements, toggleFrame)
-    
-    return toggle
-end
-
--- Публичные методы
-function Window:SetTitle(newTitle)
-    self.Title.Text = newTitle
-end
-
-function Window:SetSize(newSize)
-    self.Config.WindowSize = newSize
-    self.MainFrame.Size = newSize
-end
-
-function Window:SetPosition(newPosition)
-    self.Config.WindowPosition = newPosition
-    self.MainFrame.Position = newPosition
-end
-
-function Window:IsMobile()
-    return RedLib:IsMobile()
-end
-
--- Глобальные методы библиотеки
-function RedLib:CreateGUI(config)
-    return self:CreateWindow(config)
-end
-
-function RedLib:CreateWindow(config)
-    return self:CreateWindow(config)
-end
-
-function RedLib:CreatePanel(config)
-    return self:CreateWindow(config)
-end
-
-function RedLib:CreateInterface(config)
-    return self:CreateWindow(config)
-end
-
-function RedLib:NewWindow(config)
-    return self:CreateWindow(config)
-end
-
-function RedLib:NewGUI(config)
-    return self:CreateWindow(config)
-end
-
-function RedLib:Destroy()
-    if self.Gui then
-        self.Gui:Destroy()
-    end
 end
 
 return RedLib
