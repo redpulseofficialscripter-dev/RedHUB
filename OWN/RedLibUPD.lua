@@ -1,330 +1,209 @@
--- RedLibUPD Fixed Version
--- by redpulse
+local RedLibrary = {}
+RedLibrary.__index = RedLibrary
 
-local RedLib = {}
-RedLib.__index = RedLib
-
--- Конфигурация по умолчанию
-RedLib.DefaultConfig = {
-    WindowSize = UDim2.new(0, 350, 0, 250),
-    WindowPosition = UDim2.new(0.5, -175, 0.5, -125),
-    BackgroundColor = Color3.fromRGB(15, 15, 15),
-    BorderColor = Color3.fromRGB(255, 0, 0),
-    TextColor = Color3.fromRGB(255, 100, 100),
-    AccentColor = Color3.fromRGB(255, 0, 0),
-    SliderWidth = 250,
-    SliderHeight = 6,
-    KnobSize = 20,
-    Title = "RedLib Window"
+-- Конфигурация
+RedLibrary.Config = {
+    Title = "RedLibrary",
+    TitleColor = Color3.fromRGB(255, 0, 0),
+    GlitchColor = Color3.fromRGB(200, 0, 0),
+    Duration = 3,
+    Font = Enum.Font.SciFi,
+    TextSize = 48
 }
 
--- Утилиты
-function RedLib:CreateElement(className, properties)
-    local element = Instance.new(className)
-    for property, value in pairs(properties) do
-        if element[property] ~= nil then
-            element[property] = value
-        end
-    end
-    return element
+function RedLibrary.new()
+    local self = setmetatable({}, RedLibrary)
+    self.gui = nil
+    return self
 end
 
-function RedLib:Round(number, decimalPlaces)
-    local multiplier = 10 ^ (decimalPlaces or 0)
-    return math.floor(number * multiplier + 0.5) / multiplier
-end
-
-function RedLib:IsMobile()
-    return game:GetService("UserInputService").TouchEnabled
-end
-
--- Создание splash screen
-function RedLib:ShowSplash()
-    local player = game:GetService("Players").LocalPlayer
-    local TweenService = game:GetService("TweenService")
+function RedLibrary:ShowIntro()
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "RedLibraryIntro"
+    screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
     
-    local splashGui = self:CreateElement("ScreenGui", {
-        Name = "RedLibrarySplash",
-        ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
-        Parent = player.PlayerGui
-    })
-    
-    -- Основной текст (сразу видимый)
-    local splashText = self:CreateElement("TextLabel", {
-        Size = UDim2.new(0, 300, 0, 60),
-        Position = UDim2.new(0.5, -150, 0.5, -30),
-        BackgroundTransparency = 1,
-        Text = "REDLIBRARY",
-        TextColor3 = Color3.fromRGB(255, 0, 0),
-        Font = Enum.Font.GothamBlack,
-        TextSize = 32,
-        TextXAlignment = Enum.TextXAlignment.Center,
-        TextTransparency = 0,
-        ZIndex = 2,
-        Parent = splashGui
-    })
-    
-    -- Свечение текста
-    local textGlow = self:CreateElement("UIStroke", {
-        Color = Color3.fromRGB(255, 50, 50),
-        Thickness = 3,
-        Transparency = 0,
-        Parent = splashText
-    })
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Name = "Title"
+    textLabel.Size = UDim2.new(0, 0, 0, 0)
+    textLabel.Position = UDim2.new(0.5, 0, 0.5, 0)
+    textLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+    textLabel.BackgroundTransparency = 1
+    textLabel.Text = ""
+    textLabel.TextColor3 = self.Config.TitleColor
+    textLabel.Font = self.Config.Font
+    textLabel.TextSize = self.Config.TextSize
+    textLabel.TextStrokeTransparency = 0.5
+    textLabel.TextStrokeColor3 = Color3.new(0, 0, 0)
+    textLabel.Parent = screenGui
     
     -- Анимация появления
-    local moveUp = TweenService:Create(splashText, TweenInfo.new(0.8, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-        Position = UDim2.new(0.5, -150, 0.4, -30)
-    })
+    local appearTween = game:GetService("TweenService"):Create(
+        textLabel,
+        TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+        {
+            Size = UDim2.new(0, 300, 0, 60),
+            Text = self.Config.Title
+        }
+    )
     
-    moveUp:Play()
-    moveUp.Completed:Wait()
+    appearTween:Play()
     
-    -- Интенсивная пульсация
-    for i = 1, 3 do
-        local pulseOut = TweenService:Create(splashText, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-            TextColor3 = Color3.fromRGB(200, 0, 0),
-            TextSize = 30
-        })
-        
-        local glowPulseOut = TweenService:Create(textGlow, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-            Color = Color3.fromRGB(200, 30, 30),
-            Thickness = 4
-        })
-        
-        local pulseIn = TweenService:Create(splashText, TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-            TextColor3 = Color3.fromRGB(255, 0, 0),
-            TextSize = 32
-        })
-        
-        local glowPulseIn = TweenService:Create(textGlow, TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-            Color = Color3.fromRGB(255, 50, 50),
-            Thickness = 3
-        })
-        
-        pulseOut:Play()
-        glowPulseOut:Play()
-        pulseOut.Completed:Wait()
-        pulseIn:Play()
-        glowPulseIn:Play()
-        pulseIn.Completed:Wait()
-        
-        if i < 3 then
-            task.wait(0.2)
-        end
-    end
+    -- Глюк-эффект
+    spawn(function()
+        wait(1.2)
+        self:CreateGlitchEffect(textLabel)
+    end)
     
     -- Исчезновение
-    local fadeOutText = TweenService:Create(splashText, TweenInfo.new(1.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-        TextTransparency = 1,
-        Position = UDim2.new(0.5, -150, 0.3, -30)
-    })
-    
-    local fadeOutGlow = TweenService:Create(textGlow, TweenInfo.new(1.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-        Transparency = 1
-    })
-    
-    fadeOutText:Play()
-    fadeOutGlow:Play()
-    fadeOutText.Completed:Wait()
-    
-    splashGui:Destroy()
+    spawn(function()
+        wait(self.Config.Duration)
+        
+        local disappearTween = game:GetService("TweenService"):Create(
+            textLabel,
+            TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
+            {
+                Size = UDim2.new(0, 0, 0, 0),
+                TextTransparency = 1,
+                TextStrokeTransparency = 1
+            }
+        )
+        
+        disappearTween:Play()
+        disappearTween.Completed:Connect(function()
+            screenGui:Destroy()
+            self:CreateMainGUI()
+        end)
+    end)
 end
 
--- Класс Window
-local Window = {}
-Window.__index = Window
-
-function RedLib:CreateWindowInstance(config)
-    self:ShowSplash()
-    task.wait(0.5)
+function RedLibrary:CreateGlitchEffect(textLabel)
+    local originalText = textLabel.Text
+    local originalPosition = textLabel.Position
     
-    config = config or {}
-    setmetatable(config, {__index = self.DefaultConfig})
-    
-    local window = setmetatable({
-        Config = config,
-        Elements = {},
-        Toggles = {},
-        Sliders = {},
-        IsVisible = true
-    }, Window)
-    
-    window:Initialize()
-    return window
-end
-
-function RedLib:CreateWindow(config)
-    return self:CreateWindowInstance(config)
-end
-
-function Window:Initialize()
-    local player = game:GetService("Players").LocalPlayer
-    
-    self.Gui = self:CreateElement("ScreenGui", {
-        Name = "RedLibWindow",
-        ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
-        Parent = player.PlayerGui
-    })
-    
-    self.MainFrame = self:CreateElement("Frame", {
-        Size = UDim2.new(0, 0, 0, 0),
-        Position = UDim2.new(0.5, 0, 0.5, 0),
-        BackgroundColor3 = self.Config.BackgroundColor,
-        BorderColor3 = self.Config.BorderColor,
-        BorderSizePixel = 2,
-        ClipsDescendants = true,
-        Active = true,
-        Draggable = true,
-        Selectable = true,
-        Parent = self.Gui
-    })
-    
-    self:CreateElement("UIGradient", {
-        Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 0, 0)),
-            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(20, 0, 0)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 0, 0))
-        }),
-        Rotation = 45,
-        Parent = self.MainFrame
-    })
-    
-    self.Title = self:CreateElement("TextLabel", {
-        Size = UDim2.new(1, 0, 0, 30),
-        Position = UDim2.new(0, 0, 0, 0),
-        BackgroundTransparency = 1,
-        Text = self.Config.Title,
-        TextColor3 = self.Config.AccentColor,
-        Font = Enum.Font.GothamBold,
-        TextSize = 16,
-        TextXAlignment = Enum.TextXAlignment.Center,
-        Active = true,
-        Parent = self.MainFrame
-    })
-    
-    self.ContentFrame = self:CreateElement("Frame", {
-        Size = UDim2.new(1, -40, 1, -60),
-        Position = UDim2.new(0, 20, 0, 40),
-        BackgroundTransparency = 1,
-        Parent = self.MainFrame
-    })
-    
-    self.HideButton = self:CreateElement("TextButton", {
-        Size = UDim2.new(0, 30, 0, 30),
-        Position = UDim2.new(1, -35, 0, 5),
-        BackgroundColor3 = self.Config.AccentColor,
-        TextColor3 = Color3.fromRGB(0, 0, 0),
-        Font = Enum.Font.GothamBold,
-        Text = "×",
-        TextSize = 16,
-        BorderSizePixel = 0,
-        Parent = self.MainFrame
-    })
-    
-    -- Анимация появления окна
-    local TweenService = game:GetService("TweenService")
-    local sizeTween = TweenService:Create(self.MainFrame, TweenInfo.new(0.8, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-        Size = self.Config.WindowSize,
-        Position = self.Config.WindowPosition
-    })
-    
-    sizeTween:Play()
-    
-    self:SetupAnimations()
-    self:SetupEvents()
-end
-
-function Window:CreateElement(className, properties)
-    return RedLib:CreateElement(className, properties)
-end
-
-function Window:SetupAnimations()
-    self.TweenService = game:GetService("TweenService")
-    
-    task.spawn(function()
-        while self.MainFrame and self.MainFrame.Parent do
-            local glowTween = self.TweenService:Create(self.MainFrame, TweenInfo.new(1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
-                BorderColor3 = Color3.fromRGB(150, 0, 0)
-            })
-            glowTween:Play()
-            task.wait(1.5)
-            
-            local glowTween2 = self.TweenService:Create(self.MainFrame, TweenInfo.new(1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
-                BorderColor3 = self.Config.BorderColor
-            })
-            glowTween2:Play()
-            task.wait(1.5)
+    for i = 1, 5 do
+        textLabel.Text = ""
+        wait(0.1)
+        
+        -- Случайные глюки
+        for _ = 1, 3 do
+            textLabel.TextColor3 = self.Config.GlitchColor
+            textLabel.Position = UDim2.new(
+                originalPosition.X.Scale, 
+                originalPosition.X.Offset + math.random(-5, 5),
+                originalPosition.Y.Scale, 
+                originalPosition.Y.Offset + math.random(-5, 5)
+            )
+            textLabel.Text = string.sub(originalText, 1, math.random(3, #originalText))
+            wait(0.05)
         end
-    end)
-end
-
-function Window:SetupEvents()
-    self.HideButton.MouseButton1Click:Connect(function()
-        self:ToggleVisibility()
-    end)
-end
-
-function Window:ToggleVisibility()
-    if self.IsVisible then
-        self:Hide()
-    else
-        self:Show()
+        
+        textLabel.TextColor3 = self.Config.TitleColor
+        textLabel.Position = originalPosition
+        textLabel.Text = originalText
+        wait(0.2)
     end
 end
 
-function Window:Hide()
-    self.IsVisible = false
-    local targetPosition = UDim2.new(-0.3, 0, self.MainFrame.Position.Y.Scale, self.MainFrame.Position.Y.Offset)
-    local tween = self.TweenService:Create(self.MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-        Position = targetPosition
-    })
-    tween:Play()
-    self.HideButton.Text = "○"
-end
-
-function Window:Show()
-    self.IsVisible = true
-    local tween = self.TweenService:Create(self.MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-        Position = self.Config.WindowPosition
-    })
-    tween:Play()
-    self.HideButton.Text = "×"
-end
-
-function Window:AddLabel(text, position)
-    local label = self:CreateElement("TextLabel", {
-        Size = UDim2.new(1, 0, 0, 20),
-        Position = position or UDim2.new(0, 0, 0, #self.Elements * 30),
-        BackgroundTransparency = 1,
-        Text = text,
-        TextColor3 = self.Config.TextColor,
-        Font = Enum.Font.Gotham,
-        TextSize = 12,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Parent = self.ContentFrame
-    })
+function RedLibrary:CreateMainGUI()
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "RedLibraryGUI"
+    screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
     
-    table.insert(self.Elements, label)
-    return label
+    local mainFrame = Instance.new("Frame")
+    mainFrame.Name = "MainFrame"
+    mainFrame.Size = UDim2.new(0, 300, 0, 400)
+    mainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+    mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+    mainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    mainFrame.BorderSizePixel = 0
+    mainFrame.ClipsDescendants = true
+    mainFrame.Parent = screenGui
+    
+    -- Заголовок
+    local title = Instance.new("TextLabel")
+    title.Name = "Title"
+    title.Size = UDim2.new(1, 0, 0, 40)
+    title.Position = UDim2.new(0, 0, 0, 0)
+    title.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    title.BorderSizePixel = 0
+    title.Text = "RedLibrary"
+    title.TextColor3 = self.Config.TitleColor
+    title.Font = self.Config.Font
+    title.TextSize = 24
+    title.Parent = mainFrame
+    
+    -- Контент
+    local content = Instance.new("ScrollingFrame")
+    content.Name = "Content"
+    content.Size = UDim2.new(1, -10, 1, -50)
+    content.Position = UDim2.new(0, 5, 0, 45)
+    content.BackgroundTransparency = 1
+    content.BorderSizePixel = 0
+    content.ScrollBarThickness = 5
+    content.Parent = mainFrame
+    
+    local uiListLayout = Instance.new("UIListLayout")
+    uiListLayout.Parent = content
+    uiListLayout.Padding = UDim.new(0, 5)
+    
+    -- Анимация появления GUI
+    mainFrame.Size = UDim2.new(0, 0, 0, 0)
+    
+    local appearTween = game:GetService("TweenService"):Create(
+        mainFrame,
+        TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+        {
+            Size = UDim2.new(0, 300, 0, 400)
+        }
+    )
+    
+    appearTween:Play()
+    
+    self.gui = screenGui
+    return screenGui
 end
 
-function Window:AddButton(name, callback)
-    local button = self:CreateElement("TextButton", {
-        Size = UDim2.new(1, 0, 0, 30),
-        Position = UDim2.new(0, 0, 0, #self.Elements * 40),
-        BackgroundColor3 = self.Config.AccentColor,
-        TextColor3 = Color3.fromRGB(0, 0, 0),
-        Font = Enum.Font.GothamBold,
-        Text = name,
-        TextSize = 12,
-        BorderSizePixel = 0,
-        Parent = self.ContentFrame
-    })
+function RedLibrary:AddButton(text, callback)
+    if not self.gui then return end
+    
+    local content = self.gui.MainFrame.Content
+    local button = Instance.new("TextButton")
+    button.Name = "Button_" .. text
+    button.Size = UDim2.new(1, 0, 0, 40)
+    button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    button.BorderSizePixel = 0
+    button.Text = text
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.Font = Enum.Font.SciFi
+    button.TextSize = 18
+    button.Parent = content
+    
+    button.MouseEnter:Connect(function()
+        game:GetService("TweenService"):Create(
+            button,
+            TweenInfo.new(0.2),
+            {BackgroundColor3 = Color3.fromRGB(80, 80, 80)}
+        ):Play()
+    end)
+    
+    button.MouseLeave:Connect(function()
+        game:GetService("TweenService"):Create(
+            button,
+            TweenInfo.new(0.2),
+            {BackgroundColor3 = Color3.fromRGB(60, 60, 60)}
+        ):Play()
+    end)
     
     button.MouseButton1Click:Connect(callback)
-    table.insert(self.Elements, button)
-    return button
 end
 
-return RedLib
+function RedLibrary:Destroy()
+    if self.gui then
+        self.gui:Destroy()
+        self.gui = nil
+    end
+end
+
+return RedLibrary
