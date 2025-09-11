@@ -1,13 +1,12 @@
--- RedPulsePROJECT Library
--- Version 1.0
+-- RedLib Library - Updated Version
 -- by redpulse
 
-local RedPulsePROJECT = {}
-RedPulsePROJECT.__index = RedPulsePROJECT
+local RedLib = {}
+RedLib.__index = RedLib
 
 -- Конфигурация по умолчанию
-RedPulsePROJECT.DefaultConfig = {
-    WindowSize = UDim2.new(0, 400, 0, 300),
+RedLib.DefaultConfig = {
+    WindowSize = UDim2.new(0, 350, 0, 250),
     WindowPosition = UDim2.new(0.3, 0, 0.3, 0),
     BackgroundColor = Color3.fromRGB(15, 15, 15),
     BorderColor = Color3.fromRGB(255, 0, 0),
@@ -15,11 +14,12 @@ RedPulsePROJECT.DefaultConfig = {
     AccentColor = Color3.fromRGB(255, 0, 0),
     SliderWidth = 250,
     SliderHeight = 6,
-    KnobSize = 20
+    KnobSize = 20,
+    Title = "test window"
 }
 
 -- Утилиты
-function RedPulsePROJECT:CreateElement(className, properties)
+function RedLib:CreateElement(className, properties)
     local element = Instance.new(className)
     for property, value in pairs(properties) do
         element[property] = value
@@ -27,81 +27,33 @@ function RedPulsePROJECT:CreateElement(className, properties)
     return element
 end
 
-function RedPulsePROJECT:Round(number, decimalPlaces)
+function RedLib:Round(number, decimalPlaces)
     local multiplier = 10 ^ (decimalPlaces or 0)
     return math.floor(number * multiplier + 0.5) / multiplier
 end
 
-function RedPulsePROJECT:IsMobile()
+function RedLib:IsMobile()
     return game:GetService("UserInputService").TouchEnabled
 end
 
--- Класс Window
-local Window = {}
-Window.__index = Window
-
-function RedPulsePROJECT:CreateWindow(config)
-    config = config or {}
-    setmetatable(config, {__index = self.DefaultConfig})
+-- Создание splash screen
+function RedLib:CreateSplash()
+    local player = game:GetService("Players").LocalPlayer
+    local TweenService = game:GetService("TweenService")
     
-    local window = setmetatable({
-        Config = config,
-        Elements = {},
-        Toggles = {},
-        Sliders = {},
-        IsVisible = true
-    }, Window)
-    
-    window:Initialize()
-    return window
-end
-
-function Window:Initialize()
-    -- Создание основного GUI
-    self.Gui = self:CreateElement("ScreenGui", {
-        Name = "RedPulsePROJECT",
+    local splashGui = self:CreateElement("ScreenGui", {
+        Name = "RedLibrarySplash",
         ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
-        Parent = game:GetService("Players").LocalPlayer.PlayerGui
+        Parent = player.PlayerGui
     })
     
-    -- Основное окно
-    self.MainFrame = self:CreateElement("Frame", {
-        Size = self.Config.WindowSize,
-        Position = self.Config.WindowPosition,
-        BackgroundColor3 = self.Config.BackgroundColor,
-        BorderColor3 = self.Config.BorderColor,
-        BorderSizePixel = 2,
-        ClipsDescendants = true,
-        Active = true,
-        Draggable = true,
-        Selectable = true,
-        Parent = self.Gui
-    })
-    
-    -- Градиент фона
-    self:CreateElement("UIGradient", {
-        Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 0, 0)),
-            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(20, 0, 0)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 0, 0))
-        }),
-        Rotation = 45,
-        Parent = self.MainFrame
-    })
-    
-    -- Заголовок
-    self.Title = self:CreateElement("TextLabel", {
-        Size = UDim2.new(1, 0, 0, 30),
-        Position = UDim2.new(0, 0, 0, 0),
+    local splashText = self:CreateElement("TextLabel", {
+        Size = UDim2.new(0, 200, 0, 50),
+        Position = UDim2.new(0.5, -100, 0.5, -25),
         BackgroundTransparency = 1,
-        Text = "RedPulsePROJECT",
-        TextColor3 = self.Config.AccentColor,
-        Font = Enum.Font.GothamBold,
-        TextSize = 16,
-        TextXAlignment = Enum.TextXAlignment.Center,
-        Active = true,
-        Parent = self.MainFrame
-    })
+        Text = "RedLibrary",
+        TextColor3 = Color3.fromRGB(255, 0, 0),
+        Font = Enum    })
     
     -- Контейнер элементов
     self.ContentFrame = self:CreateElement("Frame", {
