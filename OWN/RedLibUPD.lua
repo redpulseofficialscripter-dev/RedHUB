@@ -29,25 +29,34 @@ function RedLibrary:ShowIntro()
     textLabel.Position = UDim2.new(0.5, 0, 0.5, 0)
     textLabel.AnchorPoint = Vector2.new(0.5, 0.5)
     textLabel.BackgroundTransparency = 1
-    textLabel.Text = ""
+    textLabel.Text = self.Config.Title
     textLabel.TextColor3 = self.Config.TitleColor
     textLabel.Font = self.Config.Font
     textLabel.TextSize = self.Config.TextSize
+    textLabel.TextTransparency = 1
     textLabel.TextStrokeTransparency = 0.5
     textLabel.TextStrokeColor3 = Color3.new(0, 0, 0)
     textLabel.Parent = screenGui
     
-    -- Анимация появления
-    local appearTween = game:GetService("TweenService"):Create(
+    -- Анимация появления (размер и прозрачность)
+    local sizeTween = game:GetService("TweenService"):Create(
         textLabel,
         TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
         {
-            Size = UDim2.new(0, 300, 0, 60),
-            Text = self.Config.Title
+            Size = UDim2.new(0, 300, 0, 60)
         }
     )
     
-    appearTween:Play()
+    local transparencyTween = game:GetService("TweenService"):Create(
+        textLabel,
+        TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+        {
+            TextTransparency = 0
+        }
+    )
+    
+    sizeTween:Play()
+    transparencyTween:Play()
     
     -- Глюк-эффект
     spawn(function()
