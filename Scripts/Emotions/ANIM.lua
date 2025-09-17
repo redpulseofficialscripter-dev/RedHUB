@@ -1880,8 +1880,7 @@ if UserInputService.KeyboardEnabled then
         Content = '💻 Open menu press button "."',
         Duration = 10
     })
-end    UIListLayout_2, UICorner, Search, Favorite, UICorner2, UICorner_2, SpeedEmote, UICorner_4, SpeedBox, UICorner_5, Changepage,
-    Reload, UICorner_6
+end
 
 local defaultButtonImage = "rbxassetid://71408678974152"
 local enabledButtonImage = "rbxassetid://106798555684020"
