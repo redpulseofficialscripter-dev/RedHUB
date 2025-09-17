@@ -937,7 +937,7 @@ Announce_Label.BorderSizePixel = 0
 Announce_Label.Position = UDim2.new(0, 25, 0, 150)
 Announce_Label.Size = UDim2.new(0, 350, 0, 150)
 Announce_Label.Font = Enum.Font.SourceSans
-Announce_Label.Text = loadstring(game:HttpGet("https://raw.githubusercontent.com/H20CalibreYT/SystemBroken/main/announce"))()
+Announce_Label.Text = loadstring(game:HttpGet("https://raw.githubusercontent.com/redpulseofficialscripter-dev/RedHUB/refs/heads/main/Scripts/RedBrok/announce.txt"))()
 Announce_Label.TextColor3 = Color3.fromRGB(0, 255, 255)
 Announce_Label.TextSize = 24.000
 Announce_Label.TextWrapped = true
@@ -3311,7 +3311,7 @@ AntiFling_Button.MouseButton1Click:Connect(function()
 	ChangeToggleColor(AntiFling_Button)
 	if AntiFling_Button.Ticket_Asset.ImageColor3 == Color3.fromRGB(0,255,0) then
 		_G.AntiFlingToggled = true
-		loadstring(game:HttpGet('https://raw.githubusercontent.com/H20CalibreYT/SystemBroken/main/AntiFling'))()
+		loadstring(game:HttpGet('https://raw.githubusercontent.com/redpulseofficialscripter-dev/RedHUB/refs/heads/main/Scripts/RedBrok/AntiFling.txt'))()
 	else
 		_G.AntiFlingToggled = false
 	end
@@ -3393,7 +3393,7 @@ Day_Button.MouseButton1Click:Connect(function()
 	if Shaders_Button.Ticket_Asset.ImageColor3 == Color3.fromRGB(255,0,0) then
 		game:GetService("Lighting").ClockTime = 14
 	else
-		SendNotify("System Broken","Please turn off shaders.",5)
+		SendNotify("RedBrok","Please turn off shaders.",5)
 	end
 end)
 
@@ -3430,7 +3430,7 @@ FreeEmotes_Button.MouseButton1Click:Connect(function()
 	if not FreeEmotesEnabled then
 		FreeEmotesEnabled = true
 		SendNotify("System Broken","Loading free emotes.\nCredits: Gi#7331")
-		loadstring(game:HttpGet("https://raw.githubusercontent.com/H20CalibreYT/SystemBroken/main/AllEmotes"))()
+		loadstring(game:HttpGet("https://raw.githubusercontent.com/redpulseofficialscripter-dev/RedHUB/refs/heads/main/Scripts/RedBrok/AllEmotes.txt"))()
 	end
 end)
 
@@ -3513,7 +3513,7 @@ end)
 task.spawn(function()
 	while task.wait(10) do
 		pcall(function()
-			local GuiVersion = loadstring(game:HttpGet("https://raw.githubusercontent.com/H20CalibreYT/SystemBroken/main/version"))()
+			local GuiVersion = loadstring(game:HttpGet("https://raw.githubusercontent.com/redpulseofficialscripter-dev/RedHUB/refs/heads/main/Scripts/RedBrok/version.txt"))()
 			if version<GuiVersion then
 				SendNotify("System Broken","You are not using the latest version, please run the script again.",5)
 				task.wait(5)
@@ -3537,4 +3537,4 @@ end)
 
 SendNotify("System Broken","Gui developed by MalwareHub - Discord in your clipboard",10)
 setclipboard("https://discord.gg/RkhpySwNR9")
-loadstring(game:HttpGet("https://raw.githubusercontent.com/H20CalibreYT/SystemBroken/main/premium"))() -- load the premium
+loadstring(game:HttpGet("https://raw.githubusercontent.com/redpulseofficialscripter-dev/RedHUB/refs/heads/main/Scripts/RedBrok/premium.txt"))() -- load the premium
